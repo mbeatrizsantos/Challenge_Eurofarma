@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "393808700260",
+    "firebase_url": "https://eurofarma-e0432-default-rtdb.firebaseio.com",
+    "project_id": "eurofarma-e0432",
+    "storage_bucket": "eurofarma-e0432.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:393808700260:android:281eae4337be7db9c29071",
+        "android_client_info": {
+          "package_name": "com.example.bd"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoRoSWTuRY_g1_fnmwC4TvvfHNOtifv0o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

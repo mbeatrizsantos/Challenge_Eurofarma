@@ -1,0 +1,32 @@
+name: bd
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Adicione as dependências Firebase AQUI, dentro de "dependencies"
+  firebase_core: ^2.27.0
+  firebase_auth: ^4.19.0
+  cloud_firestore: ^4.16.0
+  firebase_storage: ^11.6.0
+  firebase_messaging: ^14.7.10
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+
+  assets:
+    - assets/logo.png
