@@ -40,8 +40,6 @@ e adicione algum email+senha e use os mesmos para logar.
 ____________________________________________________________________________________________________
 CONFIGURANDO O FIREBASE:
 
-https://firebase.google.com/docs/cli?hl=pt-BR&authuser=0&_gl=1*jia8tv*_ga*MTUxNTY0NjI2OC4xNzUyNzExNzk3*_ga_CW55HF8NVT*czE3NTI3MTE3OTckbzEkZzEkdDE3NTI3MTgwMDckajYwJGwwJGgw#sign-in-test-cli
-
 1°  - baixar esse negócio do firebase: https://firebase.google.com/docs/cli?hl=pt-BR&authuser=0&_gl=1*jia8tv*_ga*MTUxNTY0NjI2OC4xNzUyNzExNzk3*_ga_CW55HF8NVT*czE3NTI3MTE3OTckbzEkZzEkdDE3NTI3MTgwMDckajYwJGwwJGgw#sign-in-test-cli
 
 2° - vai abrir um cli automatico onde vc precisa fazer o login(vai direcionar a uma pagina no google, coloque a conta que ta no firebase)
