@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'screens/login_screen.dart';
-import 'screens/ideas_list_screen.dart';
 import 'firebase_options.dart';
+import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,13 +16,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Login App',
+      title: 'Challenge Eurofarma',
       theme: ThemeData(primarySwatch: Colors.blue),
-      // define a tela inicial pela rota "/"
       initialRoute: '/',
       routes: {
-        '/': (context) => const LoginScreen(),
-        '/ideas': (context) => const IdeasListScreen(),
+        '/': (context) => const LoginScreen(), // tela inicial
+        '/home': (context) => const HomeScreen(), // tela com BottomNavigationBar
       },
     );
   }
