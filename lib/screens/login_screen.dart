@@ -26,8 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _loading = false);
 
       if (result == null) {
-        // Login bem sucedido → vai para a tela de ideias
-        Navigator.pushReplacementNamed(context, '/ideas');
+        // Login bem-sucedido → vai para a HomeScreen
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result)),
@@ -48,14 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  // Logo
-                  Image.asset(
-                    'assets/logo.png',
-                    height: 120,
-                  ),
+                  Image.asset('assets/logo.png', height: 120),
                   const SizedBox(height: 40),
 
-                  // Campo de email/ID
                   _buildInputField(
                     controller: _emailController,
                     label: 'ID',
@@ -64,7 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Campo de senha
                   _buildInputField(
                     controller: _passwordController,
                     label: 'Senha',
@@ -73,7 +67,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Botão
                   _loading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : Container(
@@ -142,3 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+      ),
+    );
+  }
+}
+
