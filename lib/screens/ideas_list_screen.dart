@@ -6,9 +6,9 @@ class IdeasListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A1931),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xFF0A1931),
+      child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -25,10 +25,17 @@ class IdeasListScreen extends StatelessWidget {
               const SizedBox(height: 24),
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('ideias').snapshots(),
+                  stream: FirebaseFirestore.instance
+                      .collection('ideias')
+                      .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return const Center(child: Text('Erro ao carregar ideias', style: TextStyle(color: Colors.white)));
+                      return const Center(
+                        child: Text(
+                          'Erro ao carregar ideias',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      );
                     }
 
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -40,7 +47,8 @@ class IdeasListScreen extends StatelessWidget {
                     return ListView.builder(
                       itemCount: docs.length,
                       itemBuilder: (context, index) {
-                        final data = docs[index].data() as Map<String, dynamic>;
+                        final data =
+                            docs[index].data() as Map<String, dynamic>;
                         return IdeaCard(data: data);
                       },
                     );
@@ -50,23 +58,6 @@ class IdeasListScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: const Color(0xFF0A1931),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black54,
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Início'),
-          BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Notícias'),
-          BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: 'Ranking'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-        ],
       ),
     );
   }
@@ -83,21 +74,22 @@ class IdeaCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: data['status'] == 'Em Andamento' ? const Color(0xFFF9E45E) : const Color(0xFFCBD5E1),
+        color: data['status'] == 'Em Andamento'
+            ? const Color(0xFFF9E45E)
+            : const Color(0xFFCBD5E1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Imagem e botão
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const CircleAvatar(
-                backgroundImage: AssetImage('assets/ideia_exemplo.png'), // Imagem genérica de ideia
+            children: const [
+              CircleAvatar(
+                backgroundImage: AssetImage('assets/ideia_exemplo.png'),
                 radius: 24,
               ),
-              const Icon(Icons.open_in_new, color: Colors.black),
+              Icon(Icons.open_in_new, color: Colors.black),
             ],
           ),
           const SizedBox(height: 12),
@@ -110,43 +102,14 @@ class IdeaCard extends StatelessWidget {
             children: [
               const Icon(Icons.calendar_today, size: 14),
               const SizedBox(width: 4),
-              Text('Até ${data['dataEnvio']}', style: const TextStyle(fontSize: 12)),
+              Text(
+                'Até ${data['dataEnvio']}',
+                style: const TextStyle(fontSize: 12),
+              ),
             ],
           ),
           const SizedBox(height: 4),
           Text(data['descricao'], style: const TextStyle(fontSize: 14)),
-          const SizedBox(height: 12),
-
-          // Avatares + Status
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: List.generate(3, (index) {
-                  return Container(
-                    margin: EdgeInsets.only(right: 4),
-                    child: const CircleAvatar(
-                      backgroundImage: AssetImage('assets/avatar.png'), // Placeholder
-                      radius: 12,
-                    ),
-                  );
-                }),
-              ),
-              Column(
-                children: [
-                  Container(
-                    height: 4,
-                    width: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const Text('Em análise', style: TextStyle(fontSize: 12)),
-                ],
-              )
-            ],
-          )
         ],
       ),
     );
