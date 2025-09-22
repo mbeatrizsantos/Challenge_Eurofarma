@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
 
+// Classe para modelar um item de notícia
+class NewsItem {
+  final String title;
+  final String date;
+  final String imageUrl;
+
+  NewsItem({required this.title, required this.date, required this.imageUrl});
+}
+
+// Classe para modelar um item de FAQ (Perguntas Frequentes)
+class FAQItem {
+  final String question;
+  final String answer;
+  final String imageUrl;
+
+  FAQItem({required this.question, required this.answer, required this.imageUrl});
+}
+
+// Tela principal de Notícias e FAQs
 class NoticiasScreen extends StatelessWidget {
   const NoticiasScreen({super.key});
 
   Future<List<NewsItem>> fetchNoticias() async {
-    await Future.delayed(const Duration(seconds: 1)); // Simula delay
+    await Future.delayed(const Duration(seconds: 1));
     return [
       NewsItem(
         title: 'A23: Dia Mundial da Pessoa com Esquizofrenia',
@@ -29,10 +48,36 @@ class NoticiasScreen extends StatelessWidget {
     ];
   }
 
+  Future<List<FAQItem>> fetchFAQs() async {
+    await Future.delayed(const Duration(seconds: 1));
+    return [
+      FAQItem(
+        question: 'O que é Esquizofrenia?',
+        answer: 'É uma doença mental crônica e complexa...',
+        imageUrl: 'assets/faq_esquizofrenia.jpg',
+      ),
+      FAQItem(
+        question: 'Como usar medicamentos genéricos?',
+        answer: 'Os medicamentos genéricos possuem o mesmo...',
+        imageUrl: 'assets/faq_genericos.jpg',
+      ),
+      FAQItem(
+        question: 'Quais são os laboratórios disponíveis?',
+        answer: 'Temos parceria com diversos laboratórios...',
+        imageUrl: 'assets/faq_laboratorios.jpg',
+      ),
+      FAQItem(
+        question: 'Onde posso encontrar eventos?',
+        answer: 'Você pode verificar a aba de notícias...',
+        imageUrl: 'assets/faq_eventos.jpg',
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.indigo[900],
+      color: const Color(0xFF041C40),
       child: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -49,9 +94,7 @@ class NoticiasScreen extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  // Ação para "Ver mais"
-                },
+                onPressed: () {},
                 child: const Text(
                   'Ver mais',
                   style: TextStyle(color: Colors.white),
@@ -67,10 +110,10 @@ class NoticiasScreen extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return const Center(child: Text('Erro ao carregar notícias'));
+                return const Center(child: Text('Erro ao carregar notícias', style: TextStyle(color: Colors.white)));
               }
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('Nenhuma notícia disponível'));
+                return const Center(child: Text('Nenhuma notícia disponível', style: TextStyle(color: Colors.white)));
               }
               final noticias = snapshot.data!;
               return GridView.count(
@@ -98,9 +141,7 @@ class NoticiasScreen extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  // Ação para "Ver mais"
-                },
+                onPressed: () {},
                 child: const Text(
                   'Ver mais',
                   style: TextStyle(color: Colors.white),
@@ -109,27 +150,30 @@ class NoticiasScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.8,
-            children: [
-              FAQCard(
-                title: 'O que é Esquizofrenia?',
-                date: 'Atualizado: Aug 30, 2025', // Simulado
-              ),
-              FAQCard(
-                title: 'Como usar medicamentos genéricos?',
-                date: 'Atualizado: Aug 28, 2025',
-              ),
-              FAQCard(
-                title: 'Quais são os laboratórios disponíveis?',
-                date: 'Atualizado: Aug 25, 2025',
-              ),
-            ],
+          FutureBuilder<List<FAQItem>>(
+            future: fetchFAQs(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return const Center(child: Text('Erro ao carregar FAQs', style: TextStyle(color: Colors.white)));
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('Nenhuma FAQ disponível', style: TextStyle(color: Colors.white)));
+              }
+              final faqs = snapshot.data!;
+              // ### ALTERAÇÃO 1: Substituído ListView.builder por GridView.count ###
+              return GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.8,
+                children: faqs.map((faq) => FAQCard(faq: faq)).toList(),
+              );
+            },
           ),
         ],
       ),
@@ -137,14 +181,7 @@ class NoticiasScreen extends StatelessWidget {
   }
 }
 
-class NewsItem {
-  final String title;
-  final String date;
-  final String imageUrl;
-
-  NewsItem({required this.title, required this.date, required this.imageUrl});
-}
-
+// Widget para exibir um card de notícia.
 class NewsCard extends StatelessWidget {
   final NewsItem news;
 
@@ -154,16 +191,20 @@ class NewsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 100,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(news.imageUrl),
-                fit: BoxFit.cover,
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(news.imageUrl),
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               ),
             ),
           ),
@@ -174,7 +215,9 @@ class NewsCard extends StatelessWidget {
               children: [
                 Text(
                   news.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -190,24 +233,34 @@ class NewsCard extends StatelessWidget {
   }
 }
 
+// Widget para exibir um card de pergunta frequente (agora ajustado para GridView).
 class FAQCard extends StatelessWidget {
-  final String title;
-  final String date;
+  final FAQItem faq;
 
-  const FAQCard({super.key, required this.title, required this.date});
+  const FAQCard({super.key, required this.faq});
 
   @override
   Widget build(BuildContext context) {
+    // ### ALTERAÇÃO 2: Card agora não tem mais margem vertical (o GridView cuida do espaçamento) ###
     return Card(
       color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 100,
-            width: double.infinity,
-            color: Colors.grey[300], // Placeholder para imagem ou fundo genérico
-            child: const Center(child: Icon(Icons.question_answer, size: 40, color: Colors.black54)), // Ícone para FAQs
+          // ### ALTERAÇÃO 3: Usando Expanded para a imagem se ajustar ao GridView ###
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(faq.imageUrl),
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -215,13 +268,17 @@ class FAQCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  faq.question,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  date,
+                  faq.answer,
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  maxLines: 1, // Reduzido para 1 linha para caber melhor no card menor
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

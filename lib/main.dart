@@ -17,11 +17,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Challenge Eurofarma',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Rubik'),
+      debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(), // tela inicial
-        '/home': (context) => const HomeScreen(), // tela com BottomNavigationBar
+        '/home': (context) =>
+            const HomeScreen(), // tela com BottomNavigationBar
       },
     );
   }

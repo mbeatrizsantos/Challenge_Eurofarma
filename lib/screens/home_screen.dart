@@ -1,4 +1,5 @@
 import 'package:bd/screens/perfil_screen.dart';
+import 'package:bd/screens/rankig_screen.dart';
 import 'package:flutter/material.dart';
 import 'ideas_list_screen.dart';
 import 'noticias_screen.dart';
@@ -16,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const IdeasListScreen(),
     const NoticiasScreen(),
+    const RankingScreen(),
     ProfileScreen(),
   ];
 
