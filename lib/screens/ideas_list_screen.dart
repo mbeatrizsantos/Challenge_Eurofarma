@@ -2,32 +2,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-// Certifique-se de que este import está correto para o seu projeto
-// import 'package:bd/firebase_options.dart';
 
-// Se você não gerou o firebase_options.dart, remova a linha acima
-// e descomente a linha abaixo para inicializar o Firebase manualmente.
-// Substitua com suas próprias credenciais do Firebase.
-/*
-const FirebaseOptions defaultFirebaseOptions = FirebaseOptions(
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "...",
-);
-*/
-
+//////////////APAGAR CODIGO DUPLICADO!!!!!
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    // Se estiver usando o arquivo gerado:
-    // options: DefaultFirebaseOptions.currentPlatform,
+    
 
-    // Se estiver usando as credenciais manuais:
-    // options: defaultFirebaseOptions,
   );
   runApp(const MyApp());
 }
@@ -139,10 +121,6 @@ class IdeasListScreen extends StatelessWidget {
   }
 }
 
-
-// =======================================================================
-// CÓDIGO ATUALIZADO E NOVOS WIDGETS ABAIXO
-// =======================================================================
 
 class IdeaCard extends StatelessWidget {
   final Map<String, dynamic> data;
