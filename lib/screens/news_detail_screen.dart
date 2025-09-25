@@ -46,7 +46,7 @@ class NewsDetailScreen extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
               ),
-              // Este transform "puxa" o container branco para cima, sobrepondo a imagem
+              // Este transform "puxa" o container branco para cima, sobrepondo a imag
               transform: Matrix4.translationValues(0.0, -30.0, 0.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
