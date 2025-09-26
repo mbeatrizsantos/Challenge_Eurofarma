@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-//////////////APAGAR CODIGO DUPLICADO!!!!!
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -297,10 +296,6 @@ class StatusIndicator extends StatelessWidget {
   }
 }
 
-
-// =======================================================================
-// CÓDIGO ORIGINAL (DIALOG E FORMULÁRIO)
-// =======================================================================
 
 class IdeaDetailsDialog extends StatelessWidget {
   final Map<String, dynamic> data;
