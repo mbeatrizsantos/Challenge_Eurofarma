@@ -2,33 +2,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-// Certifique-se de que este import está correto para o seu projeto
-// import 'package:bd/firebase_options.dart';
-
-// Se você não gerou o firebase_options.dart, remova a linha acima
-// e descomente a linha abaixo para inicializar o Firebase manualmente.
-// Substitua com suas próprias credenciais do Firebase.
-/*
-const FirebaseOptions defaultFirebaseOptions = FirebaseOptions(
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "...",
-);
-*/
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    // Se estiver usando o arquivo gerado:
-    // options: DefaultFirebaseOptions.currentPlatform,
-
-    // Se estiver usando as credenciais manuais:
-    // options: defaultFirebaseOptions,
-  );
+      // Adicione suas opções do Firebase aqui, se necessário
+      // options: DefaultFirebaseOptions.currentPlatform,
+      );
   runApp(const MyApp());
 }
 
@@ -124,7 +104,6 @@ class IdeasListScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final doc = docs[index];
                         final data = doc.data() as Map<String, dynamic>;
-                        // AQUI ESTÁ CHAMANDO O NOVO IDEA CARD
                         return IdeaCard(data: data, documentId: doc.id);
                       },
                     );
@@ -139,11 +118,6 @@ class IdeasListScreen extends StatelessWidget {
   }
 }
 
-
-// =======================================================================
-// CÓDIGO ATUALIZADO E NOVOS WIDGETS ABAIXO
-// =======================================================================
-
 class IdeaCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final String documentId;
@@ -153,14 +127,26 @@ class IdeaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final defaultColor = const Color(0xFFF9E45E); // Cor amarela do design
-    final cardColor = data.containsKey('color') ? Color(data['color']) : defaultColor;
+    final cardColor =
+        data.containsKey('color') ? Color(data['color']) : defaultColor;
+
+    // Extrai a lista de colaboradores dos dados do Firebase
+    final collaboratorsData = data['colaboradores'];
+    final List<String> collaboratorsList = collaboratorsData is List
+        ? List<String>.from(
+            collaboratorsData) // Converte para uma lista de Strings
+        : []; // Se não existir ou for do tipo errado, cria uma lista vazia
 
     return InkWell(
       onTap: () {
         showDialog(
           context: context,
-          builder: (context) =>
-              IdeaDetailsDialog(data: data, documentId: documentId),
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            child: IdeaDetailsDialog(data: data, documentId: documentId),
+          ),
         );
       },
       borderRadius: BorderRadius.circular(20),
@@ -234,7 +220,8 @@ class IdeaCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const CollaboratorAvatars(),
+                // Passa a lista de colaboradores para o widget
+                CollaboratorAvatars(collaborators: collaboratorsList),
                 StatusIndicator(status: data['status'] ?? 'Em Análise'),
               ],
             ),
@@ -246,30 +233,56 @@ class IdeaCard extends StatelessWidget {
 }
 
 class CollaboratorAvatars extends StatelessWidget {
-  const CollaboratorAvatars({super.key});
+  // Recebe a lista de colaboradores no construtor
+  final List<String> collaborators;
 
-  final List<String> collaborators = const [
-    'assets/avatar1.png',
-    'assets/avatar2.png',
-    'assets/avatar3.png',
-  ];
+  const CollaboratorAvatars({super.key, required this.collaborators});
+
+  // Função para gerar cores pastéis
+  Color _getPastelColor(String name) {
+    final random = Random(name.hashCode);
+    // Gera valores RGB em uma faixa mais alta (150-255) para garantir cores claras
+    return Color.fromRGBO(
+      150 + random.nextInt(106), // R entre 150 e 255
+      150 + random.nextInt(106), // G entre 150 e 255
+      150 + random.nextInt(106), // B entre 150 e 255
+      1,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Se não houver colaboradores, não mostra nada
+    if (collaborators.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     const avatarRadius = 16.0;
     const overlap = 10.0;
 
     return SizedBox(
       height: avatarRadius * 2,
-      width: avatarRadius * 2 + (collaborators.length - 1) * (avatarRadius * 2 - overlap),
+      width: avatarRadius * 2 +
+          (collaborators.length - 1) * (avatarRadius * 2 - overlap),
       child: Stack(
         children: List.generate(collaborators.length, (index) {
+          final name = collaborators[index];
+          final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
           return Positioned(
             left: index * (avatarRadius * 2 - overlap),
             child: CircleAvatar(
               radius: avatarRadius,
-              backgroundColor: Colors.white,
-              backgroundImage: AssetImage(collaborators[index]),
+              backgroundColor: _getPastelColor(name),
+              child: Text(
+                initial,
+                style: TextStyle(
+                  // Cor do texto que contrasta bem com fundos claros
+                  color: Colors.grey.shade800,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
             ),
           );
         }),
@@ -319,11 +332,6 @@ class StatusIndicator extends StatelessWidget {
   }
 }
 
-
-// =======================================================================
-// CÓDIGO ORIGINAL (DIALOG E FORMULÁRIO)
-// =======================================================================
-
 class IdeaDetailsDialog extends StatelessWidget {
   final Map<String, dynamic> data;
   final String documentId;
@@ -337,7 +345,8 @@ class IdeaDetailsDialog extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar Exclusão'),
-          content: const Text('Você tem certeza que deseja excluir esta ideia?'),
+          content:
+              const Text('Você tem certeza que deseja excluir esta ideia?'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -345,7 +354,8 @@ class IdeaDetailsDialog extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+              child:
+                  const Text('Excluir', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -359,21 +369,19 @@ class IdeaDetailsDialog extends StatelessWidget {
             .doc(documentId)
             .delete();
         if (context.mounted) {
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ideia excluída com sucesso!'))
-            );
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Ideia excluída com sucesso!')));
         }
       } catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao excluir ideia: $e'))
-            );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erro ao excluir ideia: $e')));
         }
       }
     }
   }
-  
+
   void _editIdea(BuildContext context) {
     Navigator.of(context).pop();
 
@@ -393,59 +401,57 @@ class IdeaDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              data['titulo'] ?? 'Ideia sem título',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+    // A classe agora retorna diretamente o conteúdo, sem o 'Dialog'
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            data['titulo'] ?? 'Ideia sem título',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.category, size: 16, color: Colors.black54),
+              const SizedBox(width: 4),
+              Text(
+                data['categoria'] ?? 'Não definida',
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
               ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.category, size: 16, color: Colors.black54),
-                const SizedBox(width: 4),
-                Text(
-                  data['categoria'] ?? 'Não definida',
-                  style: const TextStyle(fontSize: 14, color: Colors.black54),
-                ),
-              ],
-            ),
-            const Divider(height: 24),
-            Text(
-              data['descricao'] ?? 'Sem descrição.',
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  label: const Text('Editar', style: TextStyle(color: Colors.blue)),
-                  onPressed: () => _editIdea(context),
-                ),
-                const SizedBox(width: 8),
-                TextButton.icon(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  label: const Text('Excluir', style: TextStyle(color: Colors.red)),
-                  onPressed: () => _deleteIdea(context),
-                ),
-              ],
-            )
-          ],
-        ),
+            ],
+          ),
+          const Divider(height: 24),
+          Text(
+            data['descricao'] ?? 'Sem descrição.',
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                icon: const Icon(Icons.edit, color: Colors.blue),
+                label:
+                    const Text('Editar', style: TextStyle(color: Colors.blue)),
+                onPressed: () => _editIdea(context),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                label:
+                    const Text('Excluir', style: TextStyle(color: Colors.red)),
+                onPressed: () => _deleteIdea(context),
+              ),
+            ],
+          )
+        ],
       ),
     );
   }
@@ -483,8 +489,13 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
     if (_isEditing) {
       _titleController.text = widget.initialData!['titulo'] ?? '';
       _descriptionController.text = widget.initialData!['descricao'] ?? '';
-      _collaboratorController.text = widget.initialData!['colaborador'] ?? '';
       _selectedCategory = widget.initialData!['categoria'];
+
+      // Preenche o campo de colaboradores se existirem dados
+      final collaboratorsData = widget.initialData!['colaboradores'];
+      if (collaboratorsData is List && collaboratorsData.isNotEmpty) {
+        _collaboratorController.text = collaboratorsData.join(', ');
+      }
     }
   }
 
@@ -498,7 +509,18 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       return;
     }
 
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Processa os nomes dos colaboradores
+    final collaboratorsText = _collaboratorController.text.trim();
+    final collaboratorsList = collaboratorsText
+        .replaceAll('@', '') // Remove o @
+        .split(',') // Separa por vírgula
+        .map((name) => name.trim()) // Remove espaços extras
+        .where((name) => name.isNotEmpty) // Remove entradas vazias
+        .toList();
 
     try {
       if (_isEditing) {
@@ -509,7 +531,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'titulo': _titleController.text,
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
-          'colaborador': _collaboratorController.text,
+          'colaboradores': collaboratorsList,
         });
       } else {
         final randomColor = _cardColors[Random().nextInt(_cardColors.length)];
@@ -517,22 +539,28 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'titulo': _titleController.text,
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
-          'colaborador': _collaboratorController.text,
-          'dataEnvio': '20 de Julho',
+          'colaboradores': collaboratorsList,
+          'dataEnvio':
+              '20 de Julho', // Considere usar um formato de data dinâmico
           'status': 'Em Análise',
           'timestamp': FieldValue.serverTimestamp(),
           'color': randomColor,
         });
       }
 
-      if (mounted) { Navigator.of(context).pop(); }
-
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao salvar ideia: $e')),
       );
     } finally {
-      if (mounted) { setState(() { _isLoading = false; }); }
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -561,17 +589,20 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildTextField(label: 'Título da Ideia', controller: _titleController),
+          _buildTextField(
+              label: 'Título da Ideia', controller: _titleController),
           const SizedBox(height: 16),
           _buildTextField(
-              label: 'Descrição', controller: _descriptionController, maxLines: 3),
+              label: 'Descrição',
+              controller: _descriptionController,
+              maxLines: 3),
           const SizedBox(height: 16),
           _buildCategoryDropdown(),
           const SizedBox(height: 16),
           _buildTextField(
               label: 'Marcar colaborador',
               controller: _collaboratorController,
-              hint: '@matheus'),
+              hint: '@maria, @joao'),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -589,8 +620,8 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
                 ),
                 child: _isLoading
                     ? const SizedBox(
@@ -620,8 +651,8 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style:
-                const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500)),
+            style: const TextStyle(
+                color: Colors.black54, fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
