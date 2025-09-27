@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _loading = false);
 
       if (result == null) {
+        // Login bem-sucedido → vai para a HomeScreen
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -38,28 +39,35 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar( 
-        backgroundColor: Colors.transparent,
-        elevation: 0, 
+      appBar: AppBar( // Adicionado AppBar para o botão de voltar e o título
+        backgroundColor: Colors.transparent, // Transparente para o gradiente de fundo
+        elevation: 0, // Sem sombra
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            // Ação para voltar, pode ser Navigator.pop(context);
+            // Ou ir para uma tela específica, dependendo da sua navegação
+          },
+        ),
         title: const Text(
           'Login',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
-      extendBodyBehindAppBar: true, 
-      body: Container( 
+      extendBodyBehindAppBar: true, // Faz o body ir por trás da AppBar
+      body: Container( // Adicionando o Container com o gradiente
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0C2462), 
-              Color(0xFF0F4C81), 
+              Color(0xFF0C2462), // Cor inicial do seu design (um azul mais escuro)
+              Color(0xFF0F4C81), // Cor final do seu design (um azul um pouco mais claro)
             ],
           ),
         ),
-        child: SafeArea( 
+        child: SafeArea( // SafeArea para o conteúdo do formulário
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -72,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     _buildInputField(
                       controller: _emailController,
-                      label: 'Email',
+                      label: 'ID',
                       icon: Icons.person,
                       obscure: false,
                     ),
@@ -144,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
           value!.isEmpty ? 'Informe seu ${label.toLowerCase()}' : null,
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.black.withOpacity(0.5), 
+        fillColor: Colors.black.withOpacity(0.5), // Ajustei a opacidade para combinar com a imagem
         hintText: label,
         hintStyle: const TextStyle(color: Colors.white54),
         prefixIcon: Icon(icon, color: Colors.white),

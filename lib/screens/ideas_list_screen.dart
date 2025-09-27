@@ -2,6 +2,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+
+// Importe sua tela de chat que foi criada separadamente
+import 'ai_chat_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -133,9 +137,8 @@ class IdeaCard extends StatelessWidget {
     // Extrai a lista de colaboradores dos dados do Firebase
     final collaboratorsData = data['colaboradores'];
     final List<String> collaboratorsList = collaboratorsData is List
-        ? List<String>.from(
-            collaboratorsData) // Converte para uma lista de Strings
-        : []; // Se não existir ou for do tipo errado, cria uma lista vazia
+        ? List<String>.from(collaboratorsData)
+        : []; // Se não existir, cria uma lista vazia
 
     return InkWell(
       onTap: () {
@@ -220,7 +223,7 @@ class IdeaCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Passa a lista de colaboradores para o widget
+                // Passa a lista de colaboradores para o widget de avatares
                 CollaboratorAvatars(collaborators: collaboratorsList),
                 StatusIndicator(status: data['status'] ?? 'Em Análise'),
               ],
@@ -233,26 +236,22 @@ class IdeaCard extends StatelessWidget {
 }
 
 class CollaboratorAvatars extends StatelessWidget {
-  // Recebe a lista de colaboradores no construtor
   final List<String> collaborators;
-
   const CollaboratorAvatars({super.key, required this.collaborators});
 
-  // Função para gerar cores pastéis
+  // Função para gerar cores pastéis com base no nome do colaborador
   Color _getPastelColor(String name) {
     final random = Random(name.hashCode);
-    // Gera valores RGB em uma faixa mais alta (150-255) para garantir cores claras
     return Color.fromRGBO(
-      150 + random.nextInt(106), // R entre 150 e 255
-      150 + random.nextInt(106), // G entre 150 e 255
-      150 + random.nextInt(106), // B entre 150 e 255
+      150 + random.nextInt(106),
+      150 + random.nextInt(106),
+      150 + random.nextInt(106),
       1,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Se não houver colaboradores, não mostra nada
     if (collaborators.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -277,7 +276,6 @@ class CollaboratorAvatars extends StatelessWidget {
               child: Text(
                 initial,
                 style: TextStyle(
-                  // Cor do texto que contrasta bem com fundos claros
                   color: Colors.grey.shade800,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
@@ -354,8 +352,7 @@ class IdeaDetailsDialog extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child:
-                  const Text('Excluir', style: TextStyle(color: Colors.red)),
+              child: const Text('Excluir', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -370,8 +367,8 @@ class IdeaDetailsDialog extends StatelessWidget {
             .delete();
         if (context.mounted) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Ideia excluída com sucesso!')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Ideia excluída com sucesso!')));
         }
       } catch (e) {
         if (context.mounted) {
@@ -384,7 +381,6 @@ class IdeaDetailsDialog extends StatelessWidget {
 
   void _editIdea(BuildContext context) {
     Navigator.of(context).pop();
-
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -401,7 +397,6 @@ class IdeaDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // A classe agora retorna diretamente o conteúdo, sem o 'Dialog'
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -485,12 +480,11 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
   void initState() {
     super.initState();
     _isEditing = widget.initialData != null;
-
     if (_isEditing) {
       _titleController.text = widget.initialData!['titulo'] ?? '';
       _descriptionController.text = widget.initialData!['descricao'] ?? '';
       _selectedCategory = widget.initialData!['categoria'];
-
+      
       // Preenche o campo de colaboradores se existirem dados
       final collaboratorsData = widget.initialData!['colaboradores'];
       if (collaboratorsData is List && collaboratorsData.isNotEmpty) {
@@ -513,7 +507,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       _isLoading = true;
     });
 
-    // Processa os nomes dos colaboradores
+    // Processa os nomes dos colaboradores para salvar como lista
     final collaboratorsText = _collaboratorController.text.trim();
     final collaboratorsList = collaboratorsText
         .replaceAll('@', '') // Remove o @
@@ -531,7 +525,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'titulo': _titleController.text,
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
-          'colaboradores': collaboratorsList,
+          'colaboradores': collaboratorsList, // Salva a lista
         });
       } else {
         final randomColor = _cardColors[Random().nextInt(_cardColors.length)];
@@ -539,9 +533,8 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'titulo': _titleController.text,
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
-          'colaboradores': collaboratorsList,
-          'dataEnvio':
-              '20 de Julho', // Considere usar um formato de data dinâmico
+          'colaboradores': collaboratorsList, // Salva a lista
+          'dataEnvio': '20 de Julho',
           'status': 'Em Análise',
           'timestamp': FieldValue.serverTimestamp(),
           'color': randomColor,
@@ -595,7 +588,45 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           _buildTextField(
               label: 'Descrição',
               controller: _descriptionController,
-              maxLines: 3),
+              maxLines: 8), // Mantido em 8 linhas para melhor uso da IA
+          const SizedBox(height: 16),
+
+          // Botão para abrir a tela de chat com a IA
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                List<ChatMessage> initialHistory = [];
+                // Se o usuário já escreveu algo, a conversa começa com isso
+                if (_descriptionController.text.trim().isNotEmpty) {
+                  initialHistory.add(ChatMessage(_descriptionController.text, isUser: true));
+                }
+
+                // Abre a tela de chat e espera o texto final retornado
+                final refinedText = await Navigator.push<String>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AiChatScreen(initialHistory: initialHistory),
+                  ),
+                );
+                
+                // Se o chat retornou um texto, atualiza o campo
+                if (refinedText != null && mounted) {
+                  setState(() {
+                    _descriptionController.text = refinedText;
+                  });
+                }
+              },
+              icon: const Icon(Icons.chat_bubble_outline),
+              label: const Text('Conversar com IA para refinar'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF1E3A8A),
+                side: const BorderSide(color: Color(0xFF1E3A8A)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+
           const SizedBox(height: 16),
           _buildCategoryDropdown(),
           const SizedBox(height: 16),
@@ -620,8 +651,8 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: _isLoading
                     ? const SizedBox(
@@ -631,8 +662,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
                           strokeWidth: 2,
                           color: Colors.white,
                         ))
-                    : Text(
-                        _isEditing ? 'Salvar Alterações' : 'Enviar Ideia',
+                    : Text(_isEditing ? 'Salvar Alterações' : 'Enviar Ideia',
                         style: const TextStyle(color: Colors.white)),
               ),
             ],
@@ -710,3 +740,4 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
     );
   }
 }
+
