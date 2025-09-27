@@ -1,36 +1,29 @@
 import 'dart:math';
+import 'ai_chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-// Certifique-se de que este import está correto para o seu projeto
-// import 'package:bd/firebase_options.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
-// Se você não gerou o firebase_options.dart, remova a linha acima
-// e descomente a linha abaixo para inicializar o Firebase manualmente.
-// Substitua com suas próprias credenciais do Firebase.
-/*
-const FirebaseOptions defaultFirebaseOptions = FirebaseOptions(
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "...",
-);
-*/
+class AddIdeaSheet extends StatefulWidget {
+  final Map<String, dynamic>? initialData;
+  final String? documentId;
 
+  const AddIdeaSheet({super.key, this.initialData, this.documentId});
 
-//tessteeeeeeeeeeeeee eeeeeeeee
+  @override
+  State<AddIdeaSheet> createState() => _AddIdeaSheetState();
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    // Se estiver usando o arquivo gerado:
-    // options: DefaultFirebaseOptions.currentPlatform,
+      // Se estiver usando o arquivo gerado:
+      // options: DefaultFirebaseOptions.currentPlatform,
 
-    // Se estiver usando as credenciais manuais:
-    // options: defaultFirebaseOptions,
-  );
+      // Se estiver usando as credenciais manuais:
+      // options: defaultFirebaseOptions,
+      );
   runApp(const MyApp());
 }
 
@@ -141,7 +134,6 @@ class IdeasListScreen extends StatelessWidget {
   }
 }
 
-
 // =======================================================================
 // CÓDIGO ATUALIZADO E NOVOS WIDGETS ABAIXO
 // =======================================================================
@@ -155,7 +147,8 @@ class IdeaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final defaultColor = const Color(0xFFF9E45E); // Cor amarela do design
-    final cardColor = data.containsKey('color') ? Color(data['color']) : defaultColor;
+    final cardColor =
+        data.containsKey('color') ? Color(data['color']) : defaultColor;
 
     return InkWell(
       onTap: () {
@@ -263,7 +256,8 @@ class CollaboratorAvatars extends StatelessWidget {
 
     return SizedBox(
       height: avatarRadius * 2,
-      width: avatarRadius * 2 + (collaborators.length - 1) * (avatarRadius * 2 - overlap),
+      width: avatarRadius * 2 +
+          (collaborators.length - 1) * (avatarRadius * 2 - overlap),
       child: Stack(
         children: List.generate(collaborators.length, (index) {
           return Positioned(
@@ -321,7 +315,6 @@ class StatusIndicator extends StatelessWidget {
   }
 }
 
-
 // =======================================================================
 // CÓDIGO ORIGINAL (DIALOG E FORMULÁRIO)
 // =======================================================================
@@ -339,7 +332,8 @@ class IdeaDetailsDialog extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar Exclusão'),
-          content: const Text('Você tem certeza que deseja excluir esta ideia?'),
+          content:
+              const Text('Você tem certeza que deseja excluir esta ideia?'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -361,21 +355,19 @@ class IdeaDetailsDialog extends StatelessWidget {
             .doc(documentId)
             .delete();
         if (context.mounted) {
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ideia excluída com sucesso!'))
-            );
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Ideia excluída com sucesso!')));
         }
       } catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao excluir ideia: $e'))
-            );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erro ao excluir ideia: $e')));
         }
       }
     }
   }
-  
+
   void _editIdea(BuildContext context) {
     Navigator.of(context).pop();
 
@@ -435,13 +427,15 @@ class IdeaDetailsDialog extends StatelessWidget {
               children: [
                 TextButton.icon(
                   icon: const Icon(Icons.edit, color: Colors.blue),
-                  label: const Text('Editar', style: TextStyle(color: Colors.blue)),
+                  label: const Text('Editar',
+                      style: TextStyle(color: Colors.blue)),
                   onPressed: () => _editIdea(context),
                 ),
                 const SizedBox(width: 8),
                 TextButton.icon(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  label: const Text('Excluir', style: TextStyle(color: Colors.red)),
+                  label: const Text('Excluir',
+                      style: TextStyle(color: Colors.red)),
                   onPressed: () => _deleteIdea(context),
                 ),
               ],
@@ -453,23 +447,60 @@ class IdeaDetailsDialog extends StatelessWidget {
   }
 }
 
-class AddIdeaSheet extends StatefulWidget {
-  final Map<String, dynamic>? initialData;
-  final String? documentId;
-
-  const AddIdeaSheet({super.key, this.initialData, this.documentId});
-
-  @override
-  State<AddIdeaSheet> createState() => _AddIdeaSheetState();
-}
-
 class _AddIdeaSheetState extends State<AddIdeaSheet> {
-  final _titleController = TextEditingController();
+   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _collaboratorController = TextEditingController();
   String? _selectedCategory;
-  bool _isLoading = false;
+  bool _isSaving = false;
   late final bool _isEditing;
+   String _originalUserDescription = '';
+  
+  // Variáveis da IA
+  bool _isAiLoading = false;
+  String? _initialAiResponse;
+
+  Future<void> getAiSuggestion() async {
+    final ideaDescription = _descriptionController.text;
+    _originalUserDescription = _descriptionController.text;
+    if (ideaDescription.trim().isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Escreva sua ideia na descrição antes de pedir ajuda à IA.')),
+      );
+      return;
+    }
+
+    setState(() { _isAiLoading = true; });
+
+    try {
+      final callable = FirebaseFunctions.instanceFor(region: "us-central1").httpsCallable('developIdeaWithAI');
+      final result = await callable.call<Map<String, dynamic>>({
+        'text': ideaDescription,
+        'history': [],
+      });
+
+      final suggestion = result.data['suggestion'];
+      if (suggestion != null && mounted) {
+        setState(() {
+          _initialAiResponse = suggestion;
+          _descriptionController.text = suggestion;
+        });
+      }
+    } on FirebaseFunctionsException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro da IA: ${e.message}')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ocorreu um erro inesperado.')));
+    } finally {
+      if (mounted) {
+        setState(() { _isAiLoading = false; });
+      }
+    }
+  }
+
+  // --- O resto do seu código permanece aqui ---
 
   final List<int> _cardColors = [
     0xFFF9E45E, // Amarelo
@@ -500,7 +531,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       return;
     }
 
-    setState(() { _isLoading = true; });
+    setState(() { _isSaving = true; });
 
     try {
       if (_isEditing) {
@@ -528,13 +559,12 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       }
 
       if (mounted) { Navigator.of(context).pop(); }
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao salvar ideia: $e')),
       );
     } finally {
-      if (mounted) { setState(() { _isLoading = false; }); }
+      if (mounted) { setState(() { _isSaving = false; }); }
     }
   }
 
@@ -546,7 +576,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
     super.dispose();
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -562,11 +592,51 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
               color: Color(0xFF0A1931),
             ),
           ),
-          const SizedBox(height: 24),
+           const SizedBox(height: 24),
           _buildTextField(label: 'Título da Ideia', controller: _titleController),
           const SizedBox(height: 16),
           _buildTextField(
-              label: 'Descrição', controller: _descriptionController, maxLines: 3),
+              label: 'Descrição',
+              controller: _descriptionController,
+              maxLines: 8),
+          const SizedBox(height: 16),
+
+          // BOTÃO ÚNICO E FINAL PARA O CHAT
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+           List<ChatMessage> initialHistory = [];
+                // Se o usuário já escreveu algo, a conversa começa com isso
+                if (_descriptionController.text.trim().isNotEmpty) {
+                  initialHistory.add(ChatMessage(_descriptionController.text, isUser: true));
+                }
+
+                // Abre a tela de chat e espera o texto final
+                final refinedText = await Navigator.push<String>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AiChatScreen(initialHistory: initialHistory),
+                  ),
+                );
+                
+                // Se o chat retornou um texto, atualiza o campo
+                if (refinedText != null && mounted) {
+                  setState(() {
+                    _descriptionController.text = refinedText;
+                  });
+                }
+              },
+              icon: const Icon(Icons.chat_bubble_outline),
+              label: const Text('Conversar com IA para refinar'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF1E3A8A),
+                side: const BorderSide(color: Color(0xFF1E3A8A)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+
           const SizedBox(height: 16),
           _buildCategoryDropdown(),
           const SizedBox(height: 16),
@@ -585,7 +655,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
               ),
               const SizedBox(width: 8),
               ElevatedButton(
-                onPressed: _isLoading ? null : _saveIdea,
+                onPressed: _isSaving ? null : _saveIdea, // Usando a variável renomeada
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E3A8A),
                   shape: RoundedRectangleBorder(
@@ -594,7 +664,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
-                child: _isLoading
+                child: _isSaving // Usando a variável renomeada
                     ? const SizedBox(
                         width: 20,
                         height: 20,
@@ -602,8 +672,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
                           strokeWidth: 2,
                           color: Colors.white,
                         ))
-                    : Text(
-                        _isEditing ? 'Salvar Alterações' : 'Enviar Ideia',
+                    : Text(_isEditing ? 'Salvar Alterações' : 'Enviar Ideia',
                         style: const TextStyle(color: Colors.white)),
               ),
             ],
@@ -622,8 +691,8 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style:
-                const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500)),
+            style: const TextStyle(
+                color: Colors.black54, fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
