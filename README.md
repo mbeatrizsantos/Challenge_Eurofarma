@@ -28,41 +28,6 @@ Este projeto foi construído utilizando uma arquitetura limpa e escalável, com 
 * **Backend & Banco de Dados:** [**Firebase (Authentication, Cloud Firestore)**](https://firebase.google.com/)
 * **Comparação de Objetos:** [**Equatable**](https://pub.dev/packages/equatable)
 
-## 🚀 Como Rodar o Projeto
-
-Siga os passos abaixo para executar o projeto localmente.
-
-### **Pré-requisitos**
-
-* Você precisa ter o [**Flutter SDK**](https://flutter.dev/docs/get-started/install) instalado.
-* Um emulador Android/iOS ou um dispositivo físico.
-* Uma IDE como [VS Code](https://code.visualstudio.com/) ou [Android Studio](https://developer.android.com/studio).
-
-### **Instalação e Execução**
-
-1.  **Clone o repositório:**
-    ```bash
-    git clone [https://github.com/mbeatrizsantos/Challenge_Eurofarma.git](https://github.com/mbeatrizsantos/Challenge_Eurofarma.git)
-    cd Challenge_Eurofarma
-    ```
-
-2.  **Configure o Firebase:**
-    * Crie um projeto no [console do Firebase](https://console.firebase.google.com/).
-    * Adicione um app para Android e/ou iOS.
-    * **Para Android:** Baixe o arquivo `google-services.json` e coloque-o na pasta `android/app/`.
-    * **Para iOS:** Baixe o arquivo `GoogleService-Info.plist` e adicione-o ao projeto no Xcode.
-    * Ative os serviços **Authentication** (com o provedor Email/Senha) e **Cloud Firestore**.
-
-3.  **Instale as dependências:**
-    ```bash
-    flutter pub get
-    ```
-
-4.  **Execute o aplicativo:**
-    ```bash
-    flutter run
-    ```
-
 ## 📁 Estrutura de Pastas
 
 O projeto segue uma estrutura baseada em features, facilitando a manutenção e a escalabilidade:
