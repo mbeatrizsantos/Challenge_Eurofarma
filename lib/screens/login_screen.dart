@@ -42,13 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar( // Adicionado AppBar para o botão de voltar e o título
         backgroundColor: Colors.transparent, // Transparente para o gradiente de fundo
         elevation: 0, // Sem sombra
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            // Ação para voltar, pode ser Navigator.pop(context);
-            // Ou ir para uma tela específica, dependendo da sua navegação
-          },
-        ),
+      
         title: const Text(
           'Login',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -80,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     _buildInputField(
                       controller: _emailController,
-                      label: 'ID',
+                      label: 'Email',
                       icon: Icons.person,
                       obscure: false,
                     ),
