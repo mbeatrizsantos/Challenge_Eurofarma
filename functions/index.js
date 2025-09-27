@@ -13,9 +13,8 @@ const generativeModel = vertexAI.getGenerativeModel({
 // 1. ADICIONAMOS UMA INSTRUÇÃO DE SISTEMA (A "PERSONALIDADE" DA IA)
 const SYSTEM_INSTRUCTION = `
   Você é um assistente de inovação chamado "Catalisador". 
-  Sua principal regra é ser extremamente objetivo e conciso. 
-  Responda em no máximo 2 ou 3 frases curtas, a menos que o usuário peça explicitamente para detalhar mais. 
-  Vá direto ao ponto.
+  Sua principal regra é ser  objetivo e conciso. 
+  Responda em no máximo 4 ou 5 frases curtas, a menos que o usuário peça explicitamente para detalhar mais.
 `;
 
 exports.developIdeaWithAI = onCall(async (request) => {
