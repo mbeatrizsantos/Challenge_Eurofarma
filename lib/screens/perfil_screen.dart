@@ -11,8 +11,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _selectedTab = 'Status';
 
-  // Dados fictícios
-  final String userName = 'Carolino Dias';
+  // Dados fi-ctícios
+  final String userName = 'Junior Souza';
   final int pontos = 590;
   final int rank = 86;
   final int rankEquipe = 56;
@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 30),
                   // Abas de navegação
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       GestureDetector(
                         onTap: () {
@@ -462,17 +462,7 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
         ),
 
         // Botões de Voltar e Configurações (sempre visíveis)
-        Positioned(
-          top: MediaQuery.of(context).padding.top,
-          left: 0,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              if (Navigator.canPop(context)) Navigator.pop(context);
-            },
-          ),
-        ),
-        Positioned(
+         Positioned(
           top: MediaQuery.of(context).padding.top,
           right: 0,
           child: IconButton(
