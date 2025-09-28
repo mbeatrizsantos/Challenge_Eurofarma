@@ -39,8 +39,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar( 
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.transparent, 
         elevation: 0, 
+      
         title: const Text(
           'Login',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -144,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
           value!.isEmpty ? 'Informe seu ${label.toLowerCase()}' : null,
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.black.withOpacity(0.5), 
+        fillColor: Colors.black.withOpacity(0.5),
         hintText: label,
         hintStyle: const TextStyle(color: Colors.white54),
         prefixIcon: Icon(icon, color: Colors.white),
