@@ -27,7 +27,7 @@ class InfoDetailScreen extends StatelessWidget {
               },
             ),
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.network(
+              background: Image.asset(
                 infoItem.imageUrl, // Usa a imagem do InfoItem
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {

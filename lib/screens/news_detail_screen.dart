@@ -31,15 +31,11 @@ class NewsDetailScreen extends StatelessWidget {
             ),
 
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.network(
+              background: Image.asset(
                 // Carrega a imagem a partir da URL vinda do Firebase
                 newsItem.imageUrl,
                 fit: BoxFit.cover,
-                // Mostra um indicador de carregamento enquanto a imagem baixa
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return const Center(child: CircularProgressIndicator());
-                },
+            
                 // Mostra um ícone de erro se a imagem não carregar
                 errorBuilder: (context, error, stackTrace) {
                   return const Center(child: Icon(Icons.image_not_supported, color: Colors.white70));

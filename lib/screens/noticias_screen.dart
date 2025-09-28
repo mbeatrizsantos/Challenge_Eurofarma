@@ -132,7 +132,7 @@ class NewsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Image.network(
+              child: Image.asset(
                 news.imageUrl,
                 fit: BoxFit.cover,
                 width: double.infinity,
@@ -191,7 +191,7 @@ class InfoCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Image.network(
+              child: Image.asset(
                 info.imageUrl,
                 fit: BoxFit.cover,
                 width: double.infinity,
