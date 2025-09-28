@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'news_detail_screen.dart';
 
+//oiiii
+
 class NewsItem {
   final String id;
   final String title;
@@ -82,12 +84,14 @@ class NoticiasScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          const Text(
-            'Notícias e Ideias em Destaque',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          Center(
+            child: const Text(
+              'Notícias e Ideias em Destaque',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -119,12 +123,14 @@ class NoticiasScreen extends StatelessWidget {
             },
           ),
           const SizedBox(height: 32),
-          const Text(
-            'Perguntas Frequentes',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          Center(
+            child: const Text(
+              'Perguntas Frequentes',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(height: 16),
