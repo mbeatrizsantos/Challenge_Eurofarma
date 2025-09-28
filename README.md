@@ -1,42 +1,49 @@
-# Inova+ (Challenge Eurofarma)
+# Challenge_Eurofarma
+Repositório criado para armazenar todos os códigos referentes ao Challenge da Eurofarma
+
+# 🚀 Projeto Flutter + Firebase
+
+## 📌 Pré-requisitos
+- Flutter SDK instalado (versão >= 3.x)
+- Dart SDK
+- Android Studio ou VS Code com extensões Flutter/Dart
+- Firebase CLI instalado
+- Uma conta no Firebase
+
+## 🔧 Como rodar o projeto
+
+1. Clone este repositório(ou baixe o arquivo): 
+   git clone https://github.com/seu-usuario/nome-projeto.git
+   cd nome-projeto
+   
+Instale as dependências:
+flutter pub get
+
+Configure o Firebase (Caso o arquivo firebase_options.dart já esteja incluso, pule esta etapa) Senão, rode:
+flutterfire configure
+Isso vai gerar o arquivo lib/firebase_options.dart.
+
+Execute o app(apague o BUILD toda vez antes de rodar a aplicação):
+flutter run
+
+🔑 Observações
+O projeto usa Firebase Authentication (Email/Senha).
+Então para login, use as credenciais:
+- fulaninha@hotmail.com
+- 123456789
+
+Ou vá nesse link: https://console.firebase.google.com/u/0/project/eurofarma-e0432/authentication/users
+e adicione algum email+senha e use os mesmos para logar.
 
 
-Repositório do projeto **Inova+**, um aplicativo multiplataforma desenvolvido em Flutter para gamificar o processo de inovação e engajamento de colaboradores na Eurofarma.
 
----
+____________________________________________________________________________________________________
+CONFIGURANDO O FIREBASE:
 
-## 📜 Sobre o Projeto
+1°  - baixar esse negócio do firebase: https://firebase.google.com/docs/cli?hl=pt-BR&authuser=0&_gl=1*jia8tv*_ga*MTUxNTY0NjI2OC4xNzUyNzExNzk3*_ga_CW55HF8NVT*czE3NTI3MTE3OTckbzEkZzEkdDE3NTI3MTgwMDckajYwJGwwJGgw#sign-in-test-cli
 
-Este aplicativo foi criado para resolver o desafio do baixo engajamento de funcionários na criação e envio de ideias. Inspirado em plataformas como o Duolingo, o Inova+ transforma a inovação em um jogo, com rankings, pontos e prêmios, incentivando uma cultura de colaboração e criatividade contínua.
+2° - vai abrir um cli automatico onde vc precisa fazer o login(vai direcionar a uma pagina no google, coloque a conta que ta no firebase)
 
-## ✨ Features
+3° - dentro do projeto, rodar o comando "flutterfire configure" (olha se apareceu o arquivo firebase_options, se sim ta certo.)
 
-* ✅ **Autenticação Segura:** Login com Firebase Authentication.
-* 💡 **Submissão de Ideias:** Formulário simples para criar e descrever ideias, com opção de coautoria.
-* 🏆 **Sistema de Gamificação:** Perfil com estatísticas, ranking de usuários e recompensas.
-* 📊 **Acompanhamento de Status:** Visualize o progresso de suas ideias, desde a submissão até a aprovação pelo comitê.
-* 🤖 **Categorização com IA:** Sugestão inteligente de projetos para novas ideias.
-* 📢 **Quadro de Avisos:** Central de notícias sobre o impacto das inovações.
-
-
-## 🛠️ Arquitetura e Tecnologias
-
-Este projeto foi construído utilizando uma arquitetura limpa e escalável, com foco na separação de responsabilidades.
-
-* **Framework:** [**Flutter**](https://flutter.dev/)
-* **Gerenciamento de Estado:** [**BLoC (Business Logic Component)**](https://bloclibrary.dev/)
-* **Backend & Banco de Dados:** [**Firebase (Authentication, Cloud Firestore)**](https://firebase.google.com/)
-* **Comparação de Objetos:** [**Equatable**](https://pub.dev/packages/equatable)
-
-## 📁 Estrutura de Pastas
-
-O projeto segue uma estrutura baseada em features, facilitando a manutenção e a escalabilidade:
-
-lib
-├── apis/         # Configuração de clientes de API (ex: Firebase)
-├── blocs/        # Lógica de negócio (BLoCs e Cubits)
-├── models/       # Modelos de dados (ex: User, Idea)
-├── repositories/ # Camada de abstração de dados
-├── screens/      # Widgets que representam as telas
-├── widgets/      # Widgets reutilizáveis
-└── main.dart     # Ponto de entrada da aplicação
+e pronto, o objetivo é esse firebase options aparecer la no lib, se não aparecer, roda de novo o "flutterfire configure" (aqui só deu certo quando eu na opção de escolher o configuration support, coloquei todos que tinha lá, mas tenta só com o android e web, deveria funcionar).

@@ -2,8 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_functions/cloud_functions.dart';
-import 'ai_chat_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -131,8 +129,9 @@ class IdeaCard extends StatelessWidget {
         data.containsKey('color') ? Color(data['color']) : defaultColor;
     final collaboratorsData = data['colaboradores'];
     final List<String> collaboratorsList = collaboratorsData is List
-        ? List<String>.from(collaboratorsData)
-        : []; 
+        ? List<String>.from(
+            collaboratorsData) // Converte para uma lista de Strings
+        : []; // Se não existir ou for do tipo errado, cria uma lista vazia
 
     return InkWell(
       onTap: () {
@@ -217,6 +216,7 @@ class IdeaCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // Passa a lista de colaboradores para o widget
                 CollaboratorAvatars(collaborators: collaboratorsList),
                 StatusIndicator(status: data['status'] ?? 'Em Análise'),
               ],
@@ -232,6 +232,7 @@ class CollaboratorAvatars extends StatelessWidget {
   final List<String> collaborators;
   const CollaboratorAvatars({super.key, required this.collaborators});
 
+  // Função para gerar cores pastéis
   Color _getPastelColor(String name) {
     final random = Random(name.hashCode);
     return Color.fromRGBO(
@@ -476,7 +477,8 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       _titleController.text = widget.initialData!['titulo'] ?? '';
       _descriptionController.text = widget.initialData!['descricao'] ?? '';
       _selectedCategory = widget.initialData!['categoria'];
-      
+
+      // Preenche o campo de colaboradores se existirem dados
       final collaboratorsData = widget.initialData!['colaboradores'];
       if (collaboratorsData is List && collaboratorsData.isNotEmpty) {
         _collaboratorController.text = collaboratorsData.join(', ');
@@ -498,6 +500,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       _isLoading = true;
     });
 
+    // Processa os nomes dos colaboradores
     final collaboratorsText = _collaboratorController.text.trim();
     final collaboratorsList = collaboratorsText
         .replaceAll('@', '') 
@@ -515,7 +518,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'titulo': _titleController.text,
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
-          'colaboradores': collaboratorsList, 
+          'colaboradores': collaboratorsList,
         });
       } else {
         final randomColor = _cardColors[Random().nextInt(_cardColors.length)];
@@ -523,8 +526,9 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'titulo': _titleController.text,
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
-          'colaboradores': collaboratorsList, 
-          'dataEnvio': '20 de Julho',
+          'colaboradores': collaboratorsList,
+          'dataEnvio':
+              '20 de Julho', // Considere usar um formato de data dinâmico
           'status': 'Em Análise',
           'timestamp': FieldValue.serverTimestamp(),
           'color': randomColor,
@@ -578,41 +582,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           _buildTextField(
               label: 'Descrição',
               controller: _descriptionController,
-              maxLines: 8), 
-          const SizedBox(height: 16),
-
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                List<ChatMessage> initialHistory = [];
-                if (_descriptionController.text.trim().isNotEmpty) {
-                  initialHistory.add(ChatMessage(_descriptionController.text, isUser: true));
-                }
-
-                final refinedText = await Navigator.push<String>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AiChatScreen(initialHistory: initialHistory),
-                  ),
-                );
-                
-                if (refinedText != null && mounted) {
-                  setState(() {
-                    _descriptionController.text = refinedText;
-                  });
-                }
-              },
-              icon: const Icon(Icons.chat_bubble_outline),
-              label: const Text('Conversar com IA para refinar'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1E3A8A),
-                side: const BorderSide(color: Color(0xFF1E3A8A)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-
+              maxLines: 3),
           const SizedBox(height: 16),
           _buildCategoryDropdown(),
           const SizedBox(height: 16),
