@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// Abaixo, a linha de import foi corrigida como você indicou
-import 'noticias_screen.dart'; 
+import 'noticias_screen.dart'; // Importa o arquivo para ter acesso à classe NewsItem
 
 class NewsDetailScreen extends StatelessWidget {
-  final NewsItem news;
+  // A tela recebe um objeto NewsItem completo, com todos os dados do documento do Firebase
+  final NewsItem newsItem;
 
-  const NewsDetailScreen({super.key, required this.news});
+  const NewsDetailScreen({super.key, required this.newsItem});
 
   @override
   Widget build(BuildContext context) {
@@ -18,91 +18,83 @@ class NewsDetailScreen extends StatelessWidget {
         slivers: [
           SliverAppBar(
             expandedHeight: 250.0,
-            backgroundColor: Colors.transparent, // Fundo da barra fica transparente
+            backgroundColor: Colors.transparent,
             elevation: 0,
-            pinned: true, // A barra permanece visível (só com a seta) ao rolar
+            pinned: true, // Mantém a barra (com a seta) visível no topo ao rolar
 
-            // Seta de voltar
+            // Seta para voltar à tela anterior
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
-                // Ação para voltar para a tela anterior
                 Navigator.of(context).pop();
               },
             ),
 
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.asset(
-                news.imageUrl,
+              background: Image.network(
+                // Carrega a imagem a partir da URL vinda do Firebase
+                newsItem.imageUrl,
                 fit: BoxFit.cover,
+                // Mostra um indicador de carregamento enquanto a imagem baixa
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+                // Mostra um ícone de erro se a imagem não carregar
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(child: Icon(Icons.image_not_supported, color: Colors.white70));
+                },
               ),
             ),
           ),
-          // Usamos SliverToBoxAdapter para colocar um widget normal dentro de um CustomScrollView
+          // Adaptador para colocar o conteúdo principal da tela que não é "rolável" por si só
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
               ),
-              // Este transform "puxa" o container branco para cima, sobrepondo a imag
+              // O transform "puxa" o container branco para cima, sobrepondo parte da imagem
               transform: Matrix4.translationValues(0.0, -30.0, 0.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Exibe o TÍTULO da notícia/ideia
                   Text(
-                    news.title,
+                    newsItem.title,
                     style: const TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF041C40),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+                  // Exibe o AUTOR e o STATUS
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: const Text(
-                          'EuroLab',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
+                      const Icon(Icons.person_outline, size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
                       Text(
-                        news.date,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                        ),
+                        'Por: ${newsItem.author}',
+                        style: const TextStyle(color: Colors.grey, fontSize: 14),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.circle, size: 5, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '8 min',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                        ),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.flag_outlined, size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Status: ${newsItem.status}',
+                        style: const TextStyle(color: Colors.grey, fontSize: 14),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'O Eurolab conta com fábrica de escalonamento, uma cópia em tamanho reduzido da planta industrial. Assim, não é mais necessário interromper uma linha de produção para fazer testes. A mini fábrica será certificada e poderá produzir lotes para estudos clínicos.',
-                    style: TextStyle(
+                  const Divider(height: 48, thickness: 0.5),
+                  // Exibe o CONTEÚDO COMPLETO vindo do Firebase
+                  Text(
+                    newsItem.content,
+                    style: const TextStyle(
                       fontSize: 16,
-                      height: 1.5,
+                      height: 1.6, // Espaçamento entre linhas para melhor leitura
                       color: Colors.black87,
                     ),
                   ),
