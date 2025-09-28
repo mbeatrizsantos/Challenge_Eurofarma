@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'noticias_screen.dart'; // Importa para ter acesso à classe InfoItem
+import 'noticias_screen.dart';
 
 class InfoDetailScreen extends StatelessWidget {
-  // A tela recebe um objeto InfoItem completo
   final InfoItem infoItem;
 
   const InfoDetailScreen({super.key, required this.infoItem});
@@ -28,7 +27,7 @@ class InfoDetailScreen extends StatelessWidget {
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Image.asset(
-                infoItem.imageUrl, // Usa a imagem do InfoItem
+                infoItem.imageUrl, 
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Center(child: Icon(Icons.image_not_supported, color: Colors.white70));
@@ -47,7 +46,6 @@ class InfoDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Exibe o TÍTULO do InfoItem
                   Text(
                     infoItem.title,
                     style: const TextStyle(
@@ -57,13 +55,11 @@ class InfoDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Exibe a DESCRIÇÃO curta como subtítulo
                   Text(
                     infoItem.description,
                     style: const TextStyle(color: Colors.grey, fontSize: 16, fontStyle: FontStyle.italic),
                   ),
                   const Divider(height: 48, thickness: 0.5),
-                  // Exibe o CONTEÚDO COMPLETO vindo do Firebase
                   Text(
                     infoItem.fullContent,
                     style: const TextStyle(

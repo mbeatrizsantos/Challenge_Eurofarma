@@ -41,11 +41,11 @@ flutter:
   assets:
     - assets/logo.png
     - assets/camilo.jpg
-    - assets/drone.png
+    - assets/drone.jpg
     - assets/clic.jpeg
-    - assets/digitalizacao_qc.png
+    - assets/digitalizacao_qc.jpg
     - assets/ideia.jpeg
-    - assets/logisticaReversa.png
+    - assets/logisticaReversa.jpg
     - assets/office.jpg
     - assets/pontuacao.jpg
     - assets/saudeMental.jpg

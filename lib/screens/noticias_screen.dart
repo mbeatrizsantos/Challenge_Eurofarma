@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'news_detail_screen.dart';
 
-// --- MODELOS DE DADOS (sem alterações) ---
 class NewsItem {
   final String id;
   final String title;
@@ -12,7 +11,14 @@ class NewsItem {
   final String imageUrl;
   final String content;
 
-  NewsItem({ required this.id, required this.title, required this.author, required this.status, required this.imageUrl, required this.content });
+  NewsItem({
+    required this.id,
+    required this.title,
+    required this.author,
+    required this.status,
+    required this.imageUrl,
+    required this.content,
+  });
 
   factory NewsItem.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
@@ -34,7 +40,13 @@ class InfoItem {
   final String imageUrl;
   final String fullContent;
 
-  InfoItem({ required this.id, required this.title, required this.description, required this.imageUrl, required this.fullContent });
+  InfoItem({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.imageUrl,
+    required this.fullContent,
+  });
 
   factory InfoItem.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
@@ -48,12 +60,13 @@ class InfoItem {
   }
 }
 
-// --- TELA PRINCIPAL (sem alterações) ---
 class NoticiasScreen extends StatelessWidget {
   const NoticiasScreen({super.key});
 
   Future<List<NewsItem>> fetchIdeiasEmAndamento() async {
-    final snapshot = await FirebaseFirestore.instance.collection('noticias').get();
+    final snapshot = await FirebaseFirestore.instance
+        .collection('noticias')
+        .get();
     return snapshot.docs.map((doc) => NewsItem.fromFirestore(doc)).toList();
   }
 
@@ -64,66 +77,105 @@ class NoticiasScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // (O build da tela continua o mesmo)
     return Container(
-        color: const Color(0xFF041C40),
-        child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-                const Text('Ideias em Destaque', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                FutureBuilder<List<NewsItem>>(
-                    future: fetchIdeiasEmAndamento(),
-                    builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('Nenhuma ideia em destaque.', style: TextStyle(color: Colors.white)));
-                        final ideas = snapshot.data!;
-                        return GridView.builder(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.8),
-                            itemCount: ideas.length,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) => NewsCard(news: ideas[index]),
-                        );
-                    },
+      color: const Color(0xFF041C40),
+      child: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          const Text(
+            'Notícias e Ideias em Destaque',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          FutureBuilder<List<NewsItem>>(
+            future: fetchIdeiasEmAndamento(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
+                return const Center(child: CircularProgressIndicator());
+              if (!snapshot.hasData || snapshot.data!.isEmpty)
+                return const Center(
+                  child: Text(
+                    'Nenhuma ideia em destaque.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              final ideas = snapshot.data!;
+              return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.7,
                 ),
-                const SizedBox(height: 32),
-                const Text('Informações e Programas', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                FutureBuilder<List<InfoItem>>(
-                    future: fetchInfoItems(),
-                    builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('Nenhuma informação disponível.', style: TextStyle(color: Colors.white)));
-                        final infoItems = snapshot.data!;
-                        return GridView.builder(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.8),
-                            itemCount: infoItems.length,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) => InfoCard(info: infoItems[index]),
-                        );
-                    },
+                itemCount: ideas.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) => NewsCard(news: ideas[index]),
+              );
+            },
+          ),
+          const SizedBox(height: 32),
+          const Text(
+            'Perguntas Frequentes',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          FutureBuilder<List<InfoItem>>(
+            future: fetchInfoItems(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
+                return const Center(child: CircularProgressIndicator());
+              if (!snapshot.hasData || snapshot.data!.isEmpty)
+                return const Center(
+                  child: Text(
+                    'Nenhuma informação disponível.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              final infoItems = snapshot.data!;
+              return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.7,
                 ),
-            ],
-        ),
+                itemCount: infoItems.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) =>
+                    InfoCard(info: infoItems[index]),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
 
-// --- WIDGETS DOS CARDS ATUALIZADOS ---
 
 class NewsCard extends StatelessWidget {
   final NewsItem news;
   const NewsCard({super.key, required this.news});
-  
-  // (As funções de cor continuam aqui)
-  // ...
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NewsDetailScreen(newsItem: news))),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NewsDetailScreen(newsItem: news),
+        ),
+      ),
       child: Card(
         color: Colors.white,
         clipBehavior: Clip.antiAlias,
@@ -136,9 +188,13 @@ class NewsCard extends StatelessWidget {
                 news.imageUrl,
                 fit: BoxFit.cover,
                 width: double.infinity,
-                // MOSTRA UM ÍCONE DE ERRO SE A IMAGEM NÃO CARREGAR
                 errorBuilder: (context, error, stackTrace) {
-                  return const Center(child: Icon(Icons.image_not_supported_outlined, color: Colors.grey));
+                  return const Center(
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      color: Colors.grey,
+                    ),
+                  );
                 },
               ),
             ),
@@ -147,11 +203,17 @@ class NewsCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // (O resto do conteúdo do card continua o mesmo)
-                  // ...
-                  Text(news.title, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 2),
+                  Text(
+                    news.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                  ),
                   const SizedBox(height: 4),
-                  Text('Por: ${news.author}', style: const TextStyle(color: Colors.grey, fontSize: 12), maxLines: 1),
+                  Text(
+                    'Por: ${news.author}',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    maxLines: 1,
+                  ),
                 ],
               ),
             ),
@@ -162,9 +224,6 @@ class NewsCard extends StatelessWidget {
   }
 }
 
-// ... todo o resto do seu arquivo noticias_screen.dart permanece igual ...
-
-// Encontre este widget no seu arquivo
 class InfoCard extends StatelessWidget {
   final InfoItem info;
   const InfoCard({super.key, required this.info});
@@ -172,9 +231,7 @@ class InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      // ===== ALTERAÇÃO AQUI =====
       onTap: () {
-        // Remove o 'print' e adiciona a navegação
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -182,7 +239,7 @@ class InfoCard extends StatelessWidget {
           ),
         );
       },
-      // ==========================
+
       child: Card(
         color: Colors.white,
         clipBehavior: Clip.antiAlias,
@@ -196,7 +253,12 @@ class InfoCard extends StatelessWidget {
                 fit: BoxFit.cover,
                 width: double.infinity,
                 errorBuilder: (context, error, stackTrace) {
-                  return const Center(child: Icon(Icons.image_not_supported_outlined, color: Colors.grey));
+                  return const Center(
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      color: Colors.grey,
+                    ),
+                  );
                 },
               ),
             ),
@@ -205,9 +267,19 @@ class InfoCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(info.title, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis,),
+                  Text(
+                    info.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 4),
-                  Text(info.description, style: const TextStyle(color: Colors.grey, fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(
+                    info.description,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
