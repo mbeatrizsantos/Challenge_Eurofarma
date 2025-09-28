@@ -18,6 +18,7 @@ dependencies:
   cloud_firestore: ^4.16.0
   firebase_storage: ^11.6.0
   firebase_messaging: ^14.7.10
+  
 
 dev_dependencies:
   flutter_test:
@@ -26,7 +27,25 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Rubik
+      fonts:
+        - asset: assets/fonts/Rubik-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Rubik-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Rubik-Bold.ttf
+          weight: 700
 
 
   assets:
     - assets/logo.png
+    - assets/camilo.jpg
+    - assets/drone.jpg
+    - assets/clic.jpeg
+    - assets/digitalizacao_qc.jpg
+    - assets/ideia.jpeg
+    - assets/logisticaReversa.jpg
+    - assets/office.jpg
+    - assets/pontuacao.jpg
+    - assets/saudeMental.jpg

@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=C:\Users\Heloisa\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\Heloisa\OneDrive\Área de Trabalho\FIAP\Projetos- flutter\Firebase\bd"
+export "FLUTTER_ROOT=C:\dev\FlutterSDK\flutter"
+export "FLUTTER_APPLICATION_PATH=C:\Users\labsfiap\Downloads\Challenge_Eurofarma-main"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"

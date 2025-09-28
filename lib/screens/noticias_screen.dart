@@ -1,135 +1,166 @@
+import 'package:bd/screens/info_detail_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'news_detail_screen.dart';
+
+//oiiii
+
+class NewsItem {
+  final String id;
+  final String title;
+  final String author;
+  final String status;
+  final String imageUrl;
+  final String content;
+
+  NewsItem({
+    required this.id,
+    required this.title,
+    required this.author,
+    required this.status,
+    required this.imageUrl,
+    required this.content,
+  });
+
+  factory NewsItem.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
+    return NewsItem(
+      id: doc.id,
+      title: data['title'] ?? '',
+      author: data['author'] ?? '',
+      status: data['status'] ?? '',
+      imageUrl: data['imageUrl'] ?? '',
+      content: data['content'] ?? 'Nenhum conteúdo adicional.',
+    );
+  }
+}
+
+class InfoItem {
+  final String id;
+  final String title;
+  final String description;
+  final String imageUrl;
+  final String fullContent;
+
+  InfoItem({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.imageUrl,
+    required this.fullContent,
+  });
+
+  factory InfoItem.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
+    return InfoItem(
+      id: doc.id,
+      title: data['title'] ?? '',
+      description: data['description'] ?? '',
+      imageUrl: data['imageUrl'] ?? '',
+      fullContent: data['fullContent'] ?? 'Nenhuma informação adicional.',
+    );
+  }
+}
 
 class NoticiasScreen extends StatelessWidget {
   const NoticiasScreen({super.key});
 
-  Future<List<NewsItem>> fetchNoticias() async {
-    await Future.delayed(const Duration(seconds: 1)); // Simula delay
-    return [
-      NewsItem(
-        title: 'A23: Dia Mundial da Pessoa com Esquizofrenia',
-        date: 'Jul 14, 2023',
-        imageUrl: 'assets/a23.jpg',
-      ),
-      NewsItem(
-        title: 'Dia Nacional do Medicamento Gen',
-        date: 'Jul 11, 2023',
-        imageUrl: 'assets/med.jpg',
-      ),
-      NewsItem(
-        title: '6 Laboratórios de 7ª geração',
-        date: 'Jul 20, 2023',
-        imageUrl: 'assets/lab.jpg',
-      ),
-      NewsItem(
-        title: 'SpaceX: Lançamento de Equipamentos',
-        date: 'Jul 11, 2023',
-        imageUrl: 'assets/spacex.jpg',
-      ),
-    ];
+  Future<List<NewsItem>> fetchIdeiasEmAndamento() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('noticias')
+        .get();
+    return snapshot.docs.map((doc) => NewsItem.fromFirestore(doc)).toList();
+  }
+
+  Future<List<InfoItem>> fetchInfoItems() async {
+    final snapshot = await FirebaseFirestore.instance.collection('faq').get();
+    return snapshot.docs.map((doc) => InfoItem.fromFirestore(doc)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.indigo[900],
+      color: const Color(0xFF041C40),
       child: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // Seção "Noticias recentes"
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Noticias recentes',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+          Center(
+            child: const Text(
+              'Notícias e Ideias em Destaque',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
               ),
-              TextButton(
-                onPressed: () {
-                  // Ação para "Ver mais"
-                },
-                child: const Text(
-                  'Ver mais',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 16),
           FutureBuilder<List<NewsItem>>(
-            future: fetchNoticias(),
+            future: fetchIdeiasEmAndamento(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+              if (snapshot.connectionState == ConnectionState.waiting)
                 return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return const Center(child: Text('Erro ao carregar notícias'));
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('Nenhuma notícia disponível'));
-              }
-              final noticias = snapshot.data!;
-              return GridView.count(
-                crossAxisCount: 2,
+              if (!snapshot.hasData || snapshot.data!.isEmpty)
+                return const Center(
+                  child: Text(
+                    'Nenhuma ideia em destaque.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              final ideas = snapshot.data!;
+              return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.7,
+                ),
+                itemCount: ideas.length,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.8,
-                children: noticias.map((news) => NewsCard(news: news)).toList(),
+                itemBuilder: (context, index) => NewsCard(news: ideas[index]),
               );
             },
           ),
           const SizedBox(height: 32),
-          // Seção "Perguntas frequentes"
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Perguntas frequentes',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+          Center(
+            child: const Text(
+              'Perguntas Frequentes',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-              TextButton(
-                onPressed: () {
-                  // Ação para "Ver mais"
-                },
-                child: const Text(
-                  'Ver mais',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.8,
-            children: [
-              FAQCard(
-                title: 'O que é Esquizofrenia?',
-                date: 'Atualizado: Aug 30, 2025', // Simulado
-              ),
-              FAQCard(
-                title: 'Como usar medicamentos genéricos?',
-                date: 'Atualizado: Aug 28, 2025',
-              ),
-              FAQCard(
-                title: 'Quais são os laboratórios disponíveis?',
-                date: 'Atualizado: Aug 25, 2025',
-              ),
-            ],
+          FutureBuilder<List<InfoItem>>(
+            future: fetchInfoItems(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
+                return const Center(child: CircularProgressIndicator());
+              if (!snapshot.hasData || snapshot.data!.isEmpty)
+                return const Center(
+                  child: Text(
+                    'Nenhuma informação disponível.',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              final infoItems = snapshot.data!;
+              return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.7,
+                ),
+                itemCount: infoItems.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) =>
+                    InfoCard(info: infoItems[index]),
+              );
+            },
           ),
         ],
       ),
@@ -137,96 +168,129 @@ class NoticiasScreen extends StatelessWidget {
   }
 }
 
-class NewsItem {
-  final String title;
-  final String date;
-  final String imageUrl;
-
-  NewsItem({required this.title, required this.date, required this.imageUrl});
-}
 
 class NewsCard extends StatelessWidget {
   final NewsItem news;
-
   const NewsCard({super.key, required this.news});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 100,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(news.imageUrl),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NewsDetailScreen(newsItem: news),
+        ),
+      ),
+      child: Card(
+        color: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Image.asset(
+                news.imageUrl,
                 fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      color: Colors.grey,
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  news.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  news.date,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    news.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Por: ${news.author}',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    maxLines: 1,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class FAQCard extends StatelessWidget {
-  final String title;
-  final String date;
-
-  const FAQCard({super.key, required this.title, required this.date});
+class InfoCard extends StatelessWidget {
+  final InfoItem info;
+  const InfoCard({super.key, required this.info});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 100,
-            width: double.infinity,
-            color: Colors.grey[300], // Placeholder para imagem ou fundo genérico
-            child: const Center(child: Icon(Icons.question_answer, size: 40, color: Colors.black54)), // Ícone para FAQs
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InfoDetailScreen(infoItem: info),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  date,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
+        );
+      },
+
+      child: Card(
+        color: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Image.asset(
+                info.imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      color: Colors.grey,
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    info.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    info.description,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
