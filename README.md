@@ -33,9 +33,15 @@ O projeto segue uma estrutura baseada em features, facilitando a manutenção e 
 
 lib
 ├── apis/         # Configuração de clientes de API (ex: Firebase)
+
 ├── blocs/        # Lógica de negócio (BLoCs e Cubits)
+
 ├── models/       # Modelos de dados (ex: User, Idea)
+
 ├── repositories/ # Camada de abstração de dados
+
 ├── screens/      # Widgets que representam as telas
+
 ├── widgets/      # Widgets reutilizáveis
+
 └── main.dart     # Ponto de entrada da aplicação
