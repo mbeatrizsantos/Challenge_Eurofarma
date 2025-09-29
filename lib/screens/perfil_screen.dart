@@ -15,16 +15,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _selectedTab = 'Status';
   bool _isLoading = true;
 
-  String userName = 'Carregando...';
-  int pontos = 0;
-  int rank = 0;
-  int rankEquipe = 0;
-  int ideiasEnviadas = 0;
-  int ideiasAceitas = 0;
-  bool _isAdmin = false;
-  
-  final int ideiasSugeridas = 20;
-
   @override
   void initState() {
     super.initState();
@@ -108,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   const SizedBox(height: 30),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       GestureDetector(
                         onTap: () => setState(() => _selectedTab = 'Status'),
@@ -558,17 +548,13 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
         ),
-        Positioned(
-          top: MediaQuery.of(context).padding.top,
-          left: 0,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              if (Navigator.canPop(context)) Navigator.pop(context);
-            },
-          ),
-        ),
-        Positioned(
+        
+        /////////////colocar cóigo do note pad :::::::::::
+        ///////////////
+        ////////////
+        /////////////////
+        /////////////
+       
           top: MediaQuery.of(context).padding.top,
           right: 0,
           child: IconButton(
