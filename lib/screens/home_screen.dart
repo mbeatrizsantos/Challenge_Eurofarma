@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const IdeasListScreen(),
     const NoticiasScreen(),
     const RankingScreen(),
-    const ProfileScreen(), // Removido 'const' para permitir a atualização de estado
+    const ProfileScreen(), 
   ];
 
   void _onItemTapped(int index) {

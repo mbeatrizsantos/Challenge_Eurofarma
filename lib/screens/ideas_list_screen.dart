@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'ai_chat_screen.dart';
 
-// O `main()` e o `MyApp` foram removidos pois `main.dart` é o ponto de entrada principal.
+
 
 class IdeasListScreen extends StatelessWidget {
   const IdeasListScreen({super.key});
@@ -13,7 +13,6 @@ class IdeasListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    // LINHA DE DEBUG PARA VER O USUÁRIO LOGADO
     if (user != null) {
       print("DEBUG: Tentando carregar ideias para o usuário com UID: ${user.uid}");
     } else {
@@ -76,7 +75,7 @@ class IdeasListScreen extends StatelessWidget {
                             .snapshots(),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
-                            // Printa o erro de permissão ou de índice no console
+                    
                             print("DEBUG: Erro no snapshot do StreamBuilder: ${snapshot.error}");
                             return const Center(
                                 child: Text('Erro ao carregar ideias',
@@ -113,8 +112,7 @@ class IdeasListScreen extends StatelessWidget {
   }
 }
 
-// O restante do arquivo (IdeaCard, AddIdeaSheet, etc.) permanece o mesmo.
-// Cole o resto dos seus widgets aqui.
+
 
 class IdeaCard extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -455,9 +453,9 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
   bool _isLoading = false;
   late final bool _isEditing;
   final List<int> _cardColors = [
-    0xFFF9E45E, // Amarelo
-    0xFFCBD5E1, // Branco acinzentado
-    0xFFB0C4DE, // Azul
+    0xFFF9E45E, 
+    0xFFCBD5E1, 
+    0xFFB0C4DE,
   ];
 
   @override
@@ -524,7 +522,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
           'colaboradores': collaboratorsList,
-          'dataEnvio': '28 de Setembro', // Você pode querer uma data dinâmica
+          'dataEnvio': '28 de Setembro', 
           'status': 'Em Análise',
           'timestamp': FieldValue.serverTimestamp(),
           'color': randomColor,

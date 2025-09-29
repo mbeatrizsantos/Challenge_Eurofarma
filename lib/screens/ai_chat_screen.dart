@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
-//======================================================================
-// MODELO (Sem alterações)
-//======================================================================
 class ChatMessage {
   final String text;
   final bool isUser;
@@ -19,14 +16,11 @@ class ChatMessage {
   }
 }
 
-//======================================================================
-// SERVIÇO DE API (Lógica de negócios extraída)
-//======================================================================
+
 class AiChatService {
   final _functions = FirebaseFunctions.instanceFor(region: "us-central1");
 
-  /// Chama a Cloud Function para obter uma sugestão da IA.
-  /// Retorna a sugestão em caso de sucesso ou lança uma exceção em caso de erro.
+
   Future<String> getSuggestion({
     required String text,
     required List<ChatMessage> history,
@@ -44,18 +38,15 @@ class AiChatService {
       }
       return suggestion;
     } on FirebaseFunctionsException catch (e) {
-      // Re-lança a exceção com uma mensagem mais clara para a UI tratar
+    
       throw Exception("Erro na comunicação com a IA: ${e.message}");
     } catch (e) {
-      // Captura outras exceções inesperadas
+    
       throw Exception("Ocorreu um erro inesperado: ${e.toString()}");
     }
   }
 }
 
-//======================================================================
-// TELA PRINCIPAL (Widget)
-//======================================================================
 class AiChatScreen extends StatefulWidget {
   final List<ChatMessage>? initialHistory;
 
@@ -66,7 +57,7 @@ class AiChatScreen extends StatefulWidget {
 }
 
 class _AiChatScreenState extends State<AiChatScreen> {
-  // Dependências e Estado
+
   final _chatService = AiChatService();
   final _messages = <ChatMessage>[];
   final _textController = TextEditingController();
@@ -87,15 +78,15 @@ class _AiChatScreenState extends State<AiChatScreen> {
     super.dispose();
   }
 
-  /// Configura o estado inicial do chat.
+
   void _initializeChat() {
     final initialHistory = widget.initialHistory;
     if (initialHistory == null || initialHistory.isEmpty) {
-      // Se a conversa for nova, adiciona uma mensagem de boas-vindas.
+    
       _messages.add(ChatMessage(
           "Olá! Sou seu assistente de ideias. Qual conceito você gostaria de explorar hoje?"));
     } else {
-      // Se a tela recebeu uma ideia inicial, já a busca na IA.
+
       _messages.addAll(initialHistory);
       if (_messages.length == 1 && _messages.first.isUser) {
         _fetchAiResponse(initialText: _messages.first.text);
@@ -105,7 +96,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     }
   }
 
-  /// Adiciona uma nova mensagem à lista e rola para o final.
+
   void _addMessage(ChatMessage message) {
     setState(() {
       _messages.add(message);
@@ -113,7 +104,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     _scrollToBottom();
   }
 
-  /// Lida com o envio de uma nova mensagem pelo usuário.
+
   Future<void> _handleSendPressed() async {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
@@ -123,7 +114,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     await _fetchAiResponse(initialText: text);
   }
 
-  /// Busca a resposta da IA e atualiza o estado da tela.
+
   Future<void> _fetchAiResponse({required String initialText}) async {
     setState(() => _isLoading = true);
 
@@ -143,13 +134,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
     }
   }
 
-  /// Atualiza a variável que guarda a última resposta da IA.
+
   void _updateLastResponse() {
     final lastMessage = _messages.lastWhere((m) => !m.isUser, orElse: () => ChatMessage(""));
     _lastAiResponse = lastMessage.text;
   }
 
-  /// Copia todo o histórico da conversa para a área de transferência.
+
   void _copyConversationToClipboard() {
     final conversationText = _messages
         .map((m) => "${m.isUser ? 'Você' : 'IA'}: ${m.text}")
@@ -160,7 +151,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
       ..showSnackBar(const SnackBar(content: Text('Conversa copiada!')));
   }
 
-  /// Rola a lista de mensagens para o item mais recente.
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -194,7 +185,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               padding: const EdgeInsets.all(16.0),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                // Widget de bolha de mensagem extraído
+                
                 return _MessageBubble(message: _messages[index]);
               },
             ),
@@ -204,13 +195,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
               padding: EdgeInsets.all(8.0),
               child: CircularProgressIndicator(),
             ),
-          // Widget da barra de entrada extraído
+        
           _ChatInputBar(
             controller: _textController,
             isLoading: _isLoading,
             onSend: _handleSendPressed,
             onUseIdea: () {
-              // Retorna a última resposta da IA para a tela anterior
+              
               if (_lastAiResponse.isNotEmpty) {
                 Navigator.of(context).pop(_lastAiResponse);
               }
@@ -222,11 +213,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   }
 }
 
-//======================================================================
-// WIDGETS DE UI EXTRAÍDOS
-//======================================================================
 
-/// Representa a bolha de uma única mensagem no chat.
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   const _MessageBubble({required this.message});
@@ -260,7 +247,7 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-/// Representa a barra inferior com campo de texto e botões.
+
 class _ChatInputBar extends StatelessWidget {
   final TextEditingController controller;
   final bool isLoading;

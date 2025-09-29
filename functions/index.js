@@ -2,10 +2,8 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { VertexAI } = require("@google-cloud/vertexai");
 const admin = require("firebase-admin");
 
-// Inicializa o Firebase Admin SDK (necessário para criar usuários)
 admin.initializeApp();
 
-// --- INÍCIO DA CONFIGURAÇÃO DA FUNÇÃO DE IA (developIdeaWithAI) ---
 
 const vertexAI = new VertexAI({
   project: "eurofarma-e0432",
@@ -13,7 +11,7 @@ const vertexAI = new VertexAI({
 });
 
 const generativeModel = vertexAI.getGenerativeModel({
-  model: "gemini-1.0-pro", // Usando um modelo estável
+  model: "gemini-2.0-flash", 
 });
 
 const SYSTEM_INSTRUCTION = `
@@ -71,13 +69,7 @@ exports.developIdeaWithAI = onCall(async (request) => {
   }
 });
 
-// --- FIM DA FUNÇÃO DE IA ---
-
-
-// --- INÍCIO DA FUNÇÃO DE CRIAR USUÁRIO (createNewUser) ---
-
 exports.createNewUser = onCall(async (request) => {
-  // 1. Verifica se o usuário que chamou a função está autenticado.
   if (!request.auth) {
     throw new HttpsError(
       "unauthenticated",
@@ -85,7 +77,7 @@ exports.createNewUser = onCall(async (request) => {
     );
   }
 
-  // 2. Verifica se o usuário que chamou a função é um administrador.
+  
   const callerUid = request.auth.uid;
   const userRecord = await admin.firestore().collection("users").doc(callerUid).get();
   
@@ -96,7 +88,7 @@ exports.createNewUser = onCall(async (request) => {
     );
   }
 
-  // 3. Se a verificação passar, pega os dados para criar o novo usuário.
+ 
   const { email, password, displayName } = request.data;
   if (!email || !password || !displayName) {
      throw new HttpsError(
@@ -112,7 +104,7 @@ exports.createNewUser = onCall(async (request) => {
       displayName: displayName,
     });
 
-    // 4. Cria o documento para o novo usuário no Firestore com a role 'user'.
+    
     await admin.firestore().collection("users").doc(newUserRecord.uid).set({
       displayName: displayName,
       email: email,
@@ -124,12 +116,10 @@ exports.createNewUser = onCall(async (request) => {
 
   } catch (error) {
     console.error("Erro ao criar novo usuário:", error);
-    // Transforma erros específicos do auth em mensagens mais amigáveis
+    
     if (error.code === 'auth/email-already-exists') {
         throw new HttpsError("already-exists", "Este e-mail já está em uso por outro usuário.");
     }
     throw new HttpsError("internal", error.message);
   }
 });
-
-// --- FIM DA FUNÇÃO DE CRIAR USUÁRIO ---

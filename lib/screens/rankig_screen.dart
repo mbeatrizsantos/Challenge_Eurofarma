@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-// 1. PONTO DE PARTIDA DA APLICAÇÃO
+
 void main() {
   runApp(const MyApp());
 }
 
-// 2. WIDGET RAIZ COM O MATERIAL APP
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -20,25 +20,23 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// NOVA CLASSE PARA CRIAR O AaRCO
+
 class RankingArcClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    const double arcHeight = 40.0; // Altura do arco
+    const double arcHeight = 40.0; 
 
-    // Começa o desenho do canto esquerdo, na altura do final do arco
+   
     path.moveTo(0, arcHeight);
 
-    // Cria a curva de Bézier quadrática
-    // O ponto de controle (x1, y1) fica no meio da largura e no topo (y=0)
-    // O ponto final (x2, y2) fica no canto direito, na altura do final do arco
+    
     path.quadraticBezierTo(size.width / 2, 0, size.width, arcHeight);
 
-    // Desenha as linhas retas para fechar o container
-    path.lineTo(size.width, size.height); // Lado direito
-    path.lineTo(0, size.height);          // Lado de baixo
-    path.close();                         // Fecha o caminho
+    
+    path.lineTo(size.width, size.height); 
+    path.lineTo(0, size.height);          
+    path.close();                         
 
     return path;
   }
@@ -48,7 +46,6 @@ class RankingArcClipper extends CustomClipper<Path> {
 }
 
 
-// 3. A TELA DE RANKING COMPLETA E MODIFICADA
 class RankingScreen extends StatelessWidget {
   const RankingScreen({super.key});
 
@@ -76,13 +73,13 @@ class RankingScreen extends StatelessWidget {
           const PodiumWidget(),
           const SizedBox(height: 30),
 
-          // Container da lista MODIFICADO para usar ClipPath
+          
           Expanded(
-            // O ClipPath "recorta" o widget filho (Container) com o formato customizado
+            
             child: ClipPath(
-              clipper: RankingArcClipper(), // Usando nosso recortador customizado
+              clipper: RankingArcClipper(), 
               child: Container(
-                // A decoração do container não tem mais o borderRadius
+                
                 decoration: const BoxDecoration(
                   color: Colors.white,
                 ),
@@ -96,7 +93,7 @@ class RankingScreen extends StatelessWidget {
   }
 }
 
-// 4. WIDGET DO PÓDIO (sem alterações)
+
 class PodiumWidget extends StatelessWidget {
   const PodiumWidget({super.key});
 
@@ -130,7 +127,7 @@ class PodiumWidget extends StatelessWidget {
   }
 }
 
-// 5. WIDGET AUXILIAR PARA CADA LUGAR NO PÓDIO (sem alterações)
+
 class PodiumPlace extends StatelessWidget {
   final String name;
   final String points;
@@ -178,7 +175,7 @@ class PodiumPlace extends StatelessWidget {
   }
 }
 
-// 6. WIDGET DA LISTA DE RANKING (sem alterações)
+
 class RankingList extends StatelessWidget {
   const RankingList({super.key});
 
@@ -193,7 +190,7 @@ class RankingList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 60, 16, 20), // Aumentei o padding de cima para a lista não ficar colada no arco
+      padding: const EdgeInsets.fromLTRB(16, 60, 16, 20), 
       itemCount: rankings.length,
       itemBuilder: (context, index) {
         final item = rankings[index];

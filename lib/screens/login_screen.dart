@@ -2,8 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'admin_screen.dart'; // Importe a tela de admin
-import 'home_screen.dart'; // Importe a tela principal
+import 'admin_screen.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,10 +28,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (result == null) {
-      // Login bem-sucedido, agora vamos verificar a role e navegar
+     
       await _navigateOnLoginSuccess();
     } else {
-      // Se o login falhar, mostra o erro
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result)),
@@ -42,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // NOVA FUNÇÃO PARA VERIFICAR A ROLE E NAVEGAR
+  
   Future<void> _navigateOnLoginSuccess() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -53,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       
-      // Se o documento existe e a role é 'admin', vai para a tela de Admin
+      
       if (doc.exists && doc.data()?['role'] == 'admin') {
         if (mounted) {
           Navigator.pushReplacement(
@@ -62,13 +61,13 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       } else {
-        // Para todos os outros casos (usuário normal, sem role, etc.), vai para a HomeScreen
+     
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');
         }
       }
     } catch (e) {
-      // Em caso de erro, manda para a home como padrão e mostra um erro no console
+      
       print("Erro ao verificar a role do usuário: $e");
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -78,9 +77,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // O seu widget build continua exatamente o mesmo de antes.
-    // Cole aqui o seu código do `Widget build(BuildContext context)` completo.
-    // Nenhuma alteração é necessária na parte visual.
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,

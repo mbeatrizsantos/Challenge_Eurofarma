@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'admin_screen.dart';
-import 'login_screen.dart'; // Import necessário para o logout
+import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,6 +14,15 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _selectedTab = 'Status';
   bool _isLoading = true;
+  String userName = 'Carregando...';
+  int pontos = 0;
+  int rank = 0;
+  int rankEquipe = 0;
+  int ideiasEnviadas = 0;
+  int ideiasAceitas = 0;
+  bool _isAdmin = false;
+  
+  final int ideiasSugeridas = 20;
 
   @override
   void initState() {
@@ -444,7 +453,6 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.rankEquipe,
   });
 
-  // --- NOVA FUNÇÃO PARA O LOGOUT ---
   Future<void> _showLogoutDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
@@ -548,18 +556,11 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
         ),
-        
-        /////////////colocar cóigo do note pad :::::::::::
-        ///////////////
-        ////////////
-        /////////////////
-        /////////////
-       
+        Positioned(
           top: MediaQuery.of(context).padding.top,
           right: 0,
           child: IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
-            // --- ONPRESSED ATUALIZADO ---
             onPressed: () {
               _showLogoutDialog(context);
             },

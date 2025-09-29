@@ -18,7 +18,7 @@ class _AdminScreenState extends State<AdminScreen> {
   bool _isLoading = false;
 
   Future<void> _createNewUser() async {
-    // 1. Valida se os campos do formulário estão preenchidos corretamente
+   
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -35,7 +35,7 @@ class _AdminScreenState extends State<AdminScreen> {
         'displayName': _nameController.text.trim(),
       });
 
-      // 2. Se a criação for bem-sucedida, mostra mensagem e limpa o formulário
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.data['result']), backgroundColor: Colors.green),
@@ -78,7 +78,7 @@ class _AdminScreenState extends State<AdminScreen> {
       appBar: AppBar(
         title: const Text('Painel do Administrador'),
         backgroundColor: const Color(0xFF0A1931),
-        // Ação de Logout na AppBar
+    
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -86,7 +86,7 @@ class _AdminScreenState extends State<AdminScreen> {
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               if(mounted) {
-                // Leva o usuário de volta para a tela de login e remove todas as outras telas da pilha
+               
                 Navigator.pushAndRemoveUntil(
                   context, 
                   MaterialPageRoute(builder: (context) => const LoginScreen()), 
