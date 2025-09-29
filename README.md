@@ -32,6 +32,7 @@ Este projeto foi construído utilizando uma arquitetura limpa e escalável, com 
 O projeto segue uma estrutura baseada em features, facilitando a manutenção e a escalabilidade:
 
 lib
+
 ├── apis/         # Configuração de clientes de API (ex: Firebase)
 
 ├── blocs/        # Lógica de negócio (BLoCs e Cubits)
