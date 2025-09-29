@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'noticias_screen.dart';
+import 'noticias_screen.dart'; 
 
 class InfoDetailScreen extends StatelessWidget {
   final InfoItem infoItem;
@@ -12,12 +12,12 @@ class InfoDetailScreen extends StatelessWidget {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF0F0F0),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 250.0,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
+            backgroundColor: const Color(0xFF041C40),
             pinned: true,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -27,22 +27,25 @@ class InfoDetailScreen extends StatelessWidget {
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Image.asset(
-                infoItem.imageUrl, 
+                infoItem.imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(child: Icon(Icons.image_not_supported, color: Colors.white70));
-                },
+              ),
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(32.0), 
+              child: Container(
+                height: 32.0,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF0F0F0), 
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
               ),
             ),
           ),
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-              ),
-              transform: Matrix4.translationValues(0.0, -30.0, 0.0),
+              color: const Color(0xFFF0F0F0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -1,46 +1,24 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_functions/cloud_functions.dart';
-
-// Importe sua tela de chat que foi criada separadamente
+import 'package:firebase_auth/firebase_auth.dart';
 import 'ai_chat_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-      // Adicione suas opções do Firebase aqui, se necessário
-      // options: DefaultFirebaseOptions.currentPlatform,
-      );
-  runApp(const MyApp());
-}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Lista de Ideias',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blue,
-        bottomSheetTheme: const BottomSheetThemeData(
-          backgroundColor: Colors.white,
-        ),
-      ),
-      home: const IdeasListScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
 
 class IdeasListScreen extends StatelessWidget {
   const IdeasListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      print("DEBUG: Tentando carregar ideias para o usuário com UID: ${user.uid}");
+    } else {
+      print("DEBUG: Nenhum usuário logado.");
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF0A1931),
       floatingActionButton: FloatingActionButton(
@@ -73,7 +51,7 @@ class IdeasListScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 16),
               const Text(
-                'Lista de\nIdeias',
+                'Minhas\nIdeias',
                 style: TextStyle(
                   fontSize: 42,
                   color: Colors.white,
@@ -82,37 +60,49 @@ class IdeasListScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('ideias')
-                      .orderBy('timestamp', descending: true)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return const Center(
-                          child: Text('Erro ao carregar ideias',
-                              style: TextStyle(color: Colors.white)));
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                          child: Text('Nenhuma ideia encontrada.',
-                              style: TextStyle(color: Colors.white70)));
-                    }
-                    final docs = snapshot.data!.docs;
-                    return ListView.builder(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      itemCount: docs.length,
-                      itemBuilder: (context, index) {
-                        final doc = docs[index];
-                        final data = doc.data() as Map<String, dynamic>;
-                        return IdeaCard(data: data, documentId: doc.id);
-                      },
-                    );
-                  },
-                ),
+                child: user == null
+                    ? const Center(
+                        child: Text(
+                          'Faça login para ver suas ideias.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      )
+                    : StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('ideias')
+                            .where('creatorId', isEqualTo: user.uid)
+                            .orderBy('timestamp', descending: true)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                    
+                            print("DEBUG: Erro no snapshot do StreamBuilder: ${snapshot.error}");
+                            return const Center(
+                                child: Text('Erro ao carregar ideias',
+                                    style: TextStyle(color: Colors.white)));
+                          }
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                            return const Center(
+                                child: Text('Você ainda não enviou nenhuma ideia.',
+                                    style: TextStyle(color: Colors.white70)));
+                          }
+                          final docs = snapshot.data!.docs;
+                          return ListView.builder(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            itemCount: docs.length,
+                            itemBuilder: (context, index) {
+                              final doc = docs[index];
+                              final data =
+                                  doc.data() as Map<String, dynamic>;
+                              return IdeaCard(data: data, documentId: doc.id);
+                            },
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -122,6 +112,8 @@ class IdeasListScreen extends StatelessWidget {
   }
 }
 
+
+
 class IdeaCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final String documentId;
@@ -130,15 +122,13 @@ class IdeaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultColor = const Color(0xFFF9E45E); // Cor amarela do design
+    final defaultColor = const Color(0xFFF9E45E);
     final cardColor =
         data.containsKey('color') ? Color(data['color']) : defaultColor;
-
-    // Extrai a lista de colaboradores dos dados do Firebase
     final collaboratorsData = data['colaboradores'];
     final List<String> collaboratorsList = collaboratorsData is List
         ? List<String>.from(collaboratorsData)
-        : []; // Se não existir, cria uma lista vazia
+        : [];
 
     return InkWell(
       onTap: () {
@@ -223,7 +213,6 @@ class IdeaCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Passa a lista de colaboradores para o widget de avatares
                 CollaboratorAvatars(collaborators: collaboratorsList),
                 StatusIndicator(status: data['status'] ?? 'Em Análise'),
               ],
@@ -239,7 +228,6 @@ class CollaboratorAvatars extends StatelessWidget {
   final List<String> collaborators;
   const CollaboratorAvatars({super.key, required this.collaborators});
 
-  // Função para gerar cores pastéis com base no nome do colaborador
   Color _getPastelColor(String name) {
     final random = Random(name.hashCode);
     return Color.fromRGBO(
@@ -255,10 +243,8 @@ class CollaboratorAvatars extends StatelessWidget {
     if (collaborators.isEmpty) {
       return const SizedBox.shrink();
     }
-
     const avatarRadius = 16.0;
     const overlap = 10.0;
-
     return SizedBox(
       height: avatarRadius * 2,
       width: avatarRadius * 2 +
@@ -267,7 +253,6 @@ class CollaboratorAvatars extends StatelessWidget {
         children: List.generate(collaborators.length, (index) {
           final name = collaborators[index];
           final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
-
           return Positioned(
             left: index * (avatarRadius * 2 - overlap),
             child: CircleAvatar(
@@ -358,7 +343,6 @@ class IdeaDetailsDialog extends StatelessWidget {
         );
       },
     );
-
     if (confirmed == true) {
       try {
         await FirebaseFirestore.instance
@@ -455,7 +439,6 @@ class IdeaDetailsDialog extends StatelessWidget {
 class AddIdeaSheet extends StatefulWidget {
   final Map<String, dynamic>? initialData;
   final String? documentId;
-
   const AddIdeaSheet({super.key, this.initialData, this.documentId});
 
   @override
@@ -469,11 +452,10 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
   String? _selectedCategory;
   bool _isLoading = false;
   late final bool _isEditing;
-
   final List<int> _cardColors = [
-    0xFFF9E45E, // Amarelo
-    0xFFCBD5E1, // Branco acinzentado
-    0xFFB0C4DE, // Azul
+    0xFFF9E45E, 
+    0xFFCBD5E1, 
+    0xFFB0C4DE,
   ];
 
   @override
@@ -484,8 +466,6 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       _titleController.text = widget.initialData!['titulo'] ?? '';
       _descriptionController.text = widget.initialData!['descricao'] ?? '';
       _selectedCategory = widget.initialData!['categoria'];
-      
-      // Preenche o campo de colaboradores se existirem dados
       final collaboratorsData = widget.initialData!['colaboradores'];
       if (collaboratorsData is List && collaboratorsData.isNotEmpty) {
         _collaboratorController.text = collaboratorsData.join(', ');
@@ -494,6 +474,15 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
   }
 
   Future<void> _saveIdea() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Você precisa estar logado para enviar uma ideia.')),
+      );
+      return;
+    }
+
     if (_titleController.text.trim().isEmpty ||
         _descriptionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -507,13 +496,12 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
       _isLoading = true;
     });
 
-    // Processa os nomes dos colaboradores para salvar como lista
     final collaboratorsText = _collaboratorController.text.trim();
     final collaboratorsList = collaboratorsText
-        .replaceAll('@', '') // Remove o @
-        .split(',') // Separa por vírgula
-        .map((name) => name.trim()) // Remove espaços extras
-        .where((name) => name.isNotEmpty) // Remove entradas vazias
+        .replaceAll('@', '')
+        .split(',')
+        .map((name) => name.trim())
+        .where((name) => name.isNotEmpty)
         .toList();
 
     try {
@@ -525,7 +513,7 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'titulo': _titleController.text,
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
-          'colaboradores': collaboratorsList, // Salva a lista
+          'colaboradores': collaboratorsList,
         });
       } else {
         final randomColor = _cardColors[Random().nextInt(_cardColors.length)];
@@ -533,11 +521,12 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           'titulo': _titleController.text,
           'descricao': _descriptionController.text,
           'categoria': _selectedCategory ?? 'Não definida',
-          'colaboradores': collaboratorsList, // Salva a lista
-          'dataEnvio': '20 de Julho',
+          'colaboradores': collaboratorsList,
+          'dataEnvio': '28 de Setembro', 
           'status': 'Em Análise',
           'timestamp': FieldValue.serverTimestamp(),
           'color': randomColor,
+          'creatorId': user.uid,
         });
       }
 
@@ -588,29 +577,25 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
           _buildTextField(
               label: 'Descrição',
               controller: _descriptionController,
-              maxLines: 8), // Mantido em 8 linhas para melhor uso da IA
+              maxLines: 8),
           const SizedBox(height: 16),
-
-          // Botão para abrir a tela de chat com a IA
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () async {
-                List<ChatMessage> initialHistory = [];
-                // Se o usuário já escreveu algo, a conversa começa com isso
+                List<ChatMessage>? initialHistory;
                 if (_descriptionController.text.trim().isNotEmpty) {
-                  initialHistory.add(ChatMessage(_descriptionController.text, isUser: true));
+                  initialHistory = [
+                    ChatMessage(_descriptionController.text, isUser: true)
+                  ];
                 }
-
-                // Abre a tela de chat e espera o texto final retornado
                 final refinedText = await Navigator.push<String>(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AiChatScreen(initialHistory: initialHistory),
+                    builder: (context) =>
+                        AiChatScreen(initialHistory: initialHistory),
                   ),
                 );
-                
-                // Se o chat retornou um texto, atualiza o campo
                 if (refinedText != null && mounted) {
                   setState(() {
                     _descriptionController.text = refinedText;
@@ -626,7 +611,6 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
               ),
             ),
           ),
-
           const SizedBox(height: 16),
           _buildCategoryDropdown(),
           const SizedBox(height: 16),
@@ -740,4 +724,3 @@ class _AddIdeaSheetState extends State<AddIdeaSheet> {
     );
   }
 }
-

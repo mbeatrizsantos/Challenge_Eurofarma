@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'noticias_screen.dart';
+import 'noticias_screen.dart'; 
 
 class NewsDetailScreen extends StatelessWidget {
   final NewsItem newsItem;
@@ -16,94 +16,71 @@ class NewsDetailScreen extends StatelessWidget {
         slivers: [
           SliverAppBar(
             expandedHeight: 250.0,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            pinned: true,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
             ),
-
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.asset(
-                newsItem.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(
-                    child: Icon(
-                      Icons.image_not_supported,
-                      color: Colors.white70,
+              background: Stack(
+                children: [
+                  Image.asset(
+                    newsItem.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Colors.black54],
+                        ),
+                      ),
                     ),
-                  );
-                },
+                  ),
+                ],
+              ),
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(30.0), 
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF0F0F0),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                height: 32.0, 
               ),
             ),
           ),
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 32.0,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-              ),
-              transform: Matrix4.translationValues(0.0, -30.0, 0.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              color: const Color(0xFFF0F0F0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    newsItem.title,
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF041C40),
-                    ),
-                  ),
+                  const SizedBox(height: 16),
+                  Text(newsItem.title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.person_outline,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
+                      const Icon(Icons.person_outline, size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Text(
-                        'Por: ${newsItem.author}',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                        ),
-                      ),
+                      Text('Por: ${newsItem.author}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
                       const SizedBox(width: 16),
-                      const Icon(
-                        Icons.flag_outlined,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
+                      const Icon(Icons.flag_outlined, size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Text(
-                        'Status: ${newsItem.status}',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                        ),
-                      ),
+                      Text('Status: ${newsItem.status}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
                     ],
                   ),
                   const Divider(height: 48, thickness: 0.5),
                   Text(
                     newsItem.content,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.6, 
-                      color: Colors.black87,
-                    ),
+                    style: const TextStyle(fontSize: 16, height: 1.6, color: Colors.black87),
                   ),
+                  const SizedBox(height: 32), 
                 ],
               ),
             ),

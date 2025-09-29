@@ -1,5 +1,9 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { VertexAI } = require("@google-cloud/vertexai");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
+
 
 const vertexAI = new VertexAI({
   project: "eurofarma-e0432",
@@ -7,15 +11,13 @@ const vertexAI = new VertexAI({
 });
 
 const generativeModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
+  model: "gemini-2.0-flash", 
 });
 
-// 1. ADICIONAMOS UMA INSTRUÇÃO DE SISTEMA (A "PERSONALIDADE" DA IA)
 const SYSTEM_INSTRUCTION = `
   Você é um assistente de inovação chamado "Catalisador". 
-  Sua principal regra é ser extremamente objetivo e conciso. 
-  Responda em no máximo 2 ou 3 frases curtas, a menos que o usuário peça explicitamente para detalhar mais. 
-  Vá direto ao ponto.
+  Sua principal regra é ser objetivo e conciso. 
+  Responda em no máximo 4 ou 5 frases curtas, a menos que o usuário peça explicitamente para detalhar mais.
 `;
 
 exports.developIdeaWithAI = onCall(async (request) => {
@@ -29,7 +31,6 @@ exports.developIdeaWithAI = onCall(async (request) => {
   let messageToSend = newUserMessage;
   let finalHistory = history;
 
-  // 2. SIMPLIFICAMOS O PROMPT INICIAL
   if (history.length <= 2) {
     messageToSend = `
       **PROMPT INICIAL (Siga estas regras para a primeira resposta):**
@@ -46,13 +47,10 @@ exports.developIdeaWithAI = onCall(async (request) => {
   }
 
   try {
-    // 3. INJETAMOS A "PERSONALIDADE" NO INÍCIO DO HISTÓRICO DA CONVERSA
     const chat = generativeModel.startChat({ 
       history: [
-        // Adiciona a instrução de sistema no começo de toda conversa
         { role: 'user', parts: [{ text: SYSTEM_INSTRUCTION }] },
         { role: 'model', parts: [{ text: "Entendido. Serei breve e objetivo." }] },
-        // Continua com o histórico real da conversa
         ...finalHistory 
       ] 
     });
@@ -68,5 +66,60 @@ exports.developIdeaWithAI = onCall(async (request) => {
       "internal",
       "Ocorreu um erro ao processar a ideia com a IA. Tente novamente."
     );
+  }
+});
+
+exports.createNewUser = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "Você precisa estar autenticado para executar essa ação."
+    );
+  }
+
+  
+  const callerUid = request.auth.uid;
+  const userRecord = await admin.firestore().collection("users").doc(callerUid).get();
+  
+  if (!userRecord.exists || userRecord.data().role !== "admin") {
+    throw new HttpsError(
+      "permission-denied",
+      "Você não tem permissão para adicionar novos usuários."
+    );
+  }
+
+ 
+  const { email, password, displayName } = request.data;
+  if (!email || !password || !displayName) {
+     throw new HttpsError(
+      "invalid-argument",
+      "É necessário fornecer email, senha e nome para criar um usuário."
+    );
+  }
+
+  try {
+    const newUserRecord = await admin.auth().createUser({
+      email: email,
+      password: password,
+      displayName: displayName,
+    });
+
+    
+    await admin.firestore().collection("users").doc(newUserRecord.uid).set({
+      displayName: displayName,
+      email: email,
+      role: "user",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return { result: `Usuário ${displayName} criado com sucesso.` };
+
+  } catch (error) {
+    console.error("Erro ao criar novo usuário:", error);
+    
+    if (error.code === 'auth/email-already-exists') {
+        throw new HttpsError("already-exists", "Este e-mail já está em uso por outro usuário.");
+    }
+    throw new HttpsError("internal", error.message);
   }
 });

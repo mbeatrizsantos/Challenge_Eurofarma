@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'news_detail_screen.dart';
 
-//oiiii
 
 class NewsItem {
   final String id;
@@ -128,7 +127,7 @@ class NoticiasScreen extends StatelessWidget {
               'Perguntas Frequentes',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-// 1. PONTO DE PARTIDA DA APLICAÇÃO
+
 void main() {
   runApp(const MyApp());
 }
 
-// 2. WIDGET RAIZ COM O MATERIAL APP
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -20,25 +20,23 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// NOVA CLASSE PARA CRIAR O ARCO
+
 class RankingArcClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    const double arcHeight = 40.0; // Altura do arco
+    const double arcHeight = 40.0; 
 
-    // Começa o desenho do canto esquerdo, na altura do final do arco
+   
     path.moveTo(0, arcHeight);
 
-    // Cria a curva de Bézier quadrática
-    // O ponto de controle (x1, y1) fica no meio da largura e no topo (y=0)
-    // O ponto final (x2, y2) fica no canto direito, na altura do final do arco
+    
     path.quadraticBezierTo(size.width / 2, 0, size.width, arcHeight);
 
-    // Desenha as linhas retas para fechar o container
-    path.lineTo(size.width, size.height); // Lado direito
-    path.lineTo(0, size.height);          // Lado de baixo
-    path.close();                         // Fecha o caminho
+    
+    path.lineTo(size.width, size.height); 
+    path.lineTo(0, size.height);          
+    path.close();                         
 
     return path;
   }
@@ -48,7 +46,6 @@ class RankingArcClipper extends CustomClipper<Path> {
 }
 
 
-// 3. A TELA DE RANKING COMPLETA E MODIFICADA
 class RankingScreen extends StatelessWidget {
   const RankingScreen({super.key});
 
@@ -76,13 +73,13 @@ class RankingScreen extends StatelessWidget {
           const PodiumWidget(),
           const SizedBox(height: 30),
 
-          // Container da lista MODIFICADO para usar ClipPath
+          
           Expanded(
-            // O ClipPath "recorta" o widget filho (Container) com o formato customizado
+            
             child: ClipPath(
-              clipper: RankingArcClipper(), // Usando nosso recortador customizado
+              clipper: RankingArcClipper(), 
               child: Container(
-                // A decoração do container não tem mais o borderRadius
+                
                 decoration: const BoxDecoration(
                   color: Colors.white,
                 ),
@@ -96,7 +93,7 @@ class RankingScreen extends StatelessWidget {
   }
 }
 
-// 4. WIDGET DO PÓDIO (sem alterações)
+
 class PodiumWidget extends StatelessWidget {
   const PodiumWidget({super.key});
 
@@ -107,22 +104,22 @@ class PodiumWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         PodiumPlace(
-          name: 'Bil-al',
+          name: 'Carmem Dias',
           points: '2879 Pts',
-          imageUrl: 'assets/person1.png',
+          imageUrl: 'assets/foto de foco raso da mulher na jaqueta cinza.png',
           radius: 50,
         ),
         PodiumPlace(
-          name: 'Davy Jones',
+          name: 'Joao Santana',
           points: '5678 Pts',
-          imageUrl: 'assets/person2.png',
+          imageUrl: 'assets/um homem de óculos e camisa branca.png',
           radius: 65,
           hasCrown: true,
         ),
         PodiumPlace(
-          name: 'Michael J',
+          name: 'Beatriz Silva',
           points: '3244 Pts',
-          imageUrl: 'assets/person3.png',
+          imageUrl: 'assets/Uma jovem com cabelo comprido vestindo uma camiseta branca.png',
           radius: 50,
         ),
       ],
@@ -130,7 +127,7 @@ class PodiumWidget extends StatelessWidget {
   }
 }
 
-// 5. WIDGET AUXILIAR PARA CADA LUGAR NO PÓDIO (sem alterações)
+
 class PodiumPlace extends StatelessWidget {
   final String name;
   final String points;
@@ -178,22 +175,22 @@ class PodiumPlace extends StatelessWidget {
   }
 }
 
-// 6. WIDGET DA LISTA DE RANKING (sem alterações)
+
 class RankingList extends StatelessWidget {
   const RankingList({super.key});
 
   final List<Map<String, dynamic>> rankings = const [
-    {'position': '4', 'name': 'Smith Carol', 'points': '2000 Pts', 'imageUrl': 'assets/person4.png'},
-    {'position': '5', 'name': 'Harry', 'points': '1890 Pts', 'imageUrl': 'assets/person5.png'},
-    {'position': '6', 'name': 'Jon', 'points': '1600 Pts', 'imageUrl': 'assets/person6.png'},
-    {'position': '7', 'name': 'Ken', 'points': '1456 Pts', 'imageUrl': 'assets/person7.png'},
-    {'position': '8', 'name': 'Petter', 'points': '1302 Pts', 'imageUrl': 'assets/person8.png'},
+    {'position': '4', 'name': 'Carol Dias', 'points': '2000 Pts', 'imageUrl': 'assets/Um homem de camisa branca está posando para uma foto.png'},
+    {'position': '5', 'name': 'Carlos Peira', 'points': '1890 Pts', 'imageUrl': 'assets/um homem de cabelos cacheados sorrindo para a câmera.png'},
+    {'position': '6', 'name': 'Cristiana Rodrigues', 'points': '1600 Pts', 'imageUrl': 'assets/Uma jovem empresária de pé ao ar livre contra o fundo verde, olhando para a câmera.png'},
+    {'position': '7', 'name': 'Heloisa Vital', 'points': '1456 Pts', 'imageUrl': 'assets/uma mulher em um vestido sorrindo contra uma parede azul.png'},
+    {'position': '8', 'name': 'Roberto Carlos', 'points': '1302 Pts', 'imageUrl': 'assets/camisa cinza e preta do homem.png'},
   ];
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 60, 16, 20), // Aumentei o padding de cima para a lista não ficar colada no arco
+      padding: const EdgeInsets.fromLTRB(16, 60, 16, 20), 
       itemCount: rankings.length,
       itemBuilder: (context, index) {
         final item = rankings[index];
