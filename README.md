@@ -17,12 +17,6 @@ Este aplicativo foi criado para resolver o desafio do baixo engajamento de funci
 * 🤖 **Categorização com IA:** Sugestão inteligente de projetos para novas ideias.
 * 📢 **Quadro de Avisos:** Central de notícias sobre o impacto das inovações.
 
-## 📱 Telas
-
-| Login | Lista de Ideias | Perfil |
-| :---: | :---: | :---: |
-| <img src="https://i.ibb.co/6yqJ7tV/image-dcc29c.png" width="250"> | <img src="https://i.ibb.co/Bq8W6rR/image.png" width="250"> | <img src="https://i.ibb.co/3s6c013/image.png" width="250"> |
-
 ## 🛠️ Arquitetura e Tecnologias
 
 Este projeto foi construído utilizando uma arquitetura limpa e escalável, com foco na separação de responsabilidades.
