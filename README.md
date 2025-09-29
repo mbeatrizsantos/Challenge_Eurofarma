@@ -22,9 +22,7 @@ Este aplicativo foi criado para resolver o desafio do baixo engajamento de funci
 Este projeto foi construído utilizando uma arquitetura limpa e escalável, com foco na separação de responsabilidades.
 
 * **Framework:** [**Flutter**](https://flutter.dev/)
-* **Gerenciamento de Estado:** [**BLoC (Business Logic Component)**](https://bloclibrary.dev/)
 * **Backend & Banco de Dados:** [**Firebase (Authentication, Cloud Firestore)**](https://firebase.google.com/)
-* **Comparação de Objetos:** [**Equatable**](https://pub.dev/packages/equatable)
 
 
 ## 📁 Estrutura de Pastas
