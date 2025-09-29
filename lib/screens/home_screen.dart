@@ -1,24 +1,23 @@
-import 'package:bd/screens/perfil_screen.dart';
-import 'package:bd/screens/rankig_screen.dart';
 import 'package:flutter/material.dart';
+import 'perfil_screen.dart';
+import 'rankig_screen.dart';
 import 'ideas_list_screen.dart';
 import 'noticias_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-
+  
   final List<Widget> _screens = [
     const IdeasListScreen(),
     const NoticiasScreen(),
     const RankingScreen(),
-    ProfileScreen(),
+    const ProfileScreen(), // Removido 'const' para permitir a atualização de estado
   ];
 
   void _onItemTapped(int index) {
