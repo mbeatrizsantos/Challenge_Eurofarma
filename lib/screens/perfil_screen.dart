@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'admin_screen.dart';
+import 'login_screen.dart'; // Import necessário para o logout
 
-// MAIN WIDGET - PROFILE SCREEN
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -10,23 +13,74 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String _selectedTab = 'Status';
+  bool _isLoading = true;
 
-  // Dados fi-ctícios
-  final String userName = 'Junior Souza';
-  final int pontos = 590;
-  final int rank = 86;
-  final int rankEquipe = 56;
-  final int ideiasEnviadas = 6;
-  final int ideiasAceitas = 4;
-  final int ideiasSugeridas = 20;
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final ideasQuery = await FirebaseFirestore.instance
+          .collection('ideias')
+          .where('creatorId', isEqualTo: user.uid)
+          .count()
+          .get();
+          
+      final userIdeiasCount = ideasQuery.count;
+
+      if (mounted && userDoc.exists) {
+        final data = userDoc.data()!;
+        setState(() {
+          userName = data['displayName'] ?? 'Usuário sem nome';
+          pontos = data['pontos'] ?? 0;
+          rank = data['rank'] ?? 0;
+          rankEquipe = data['rankEquipe'] ?? 0;
+          ideiasAceitas = data['ideiasAceitas'] ?? 0;
+          _isAdmin = data['role'] == 'admin';
+          ideiasEnviadas = userIdeiasCount!;
+        });
+      }
+    } catch (e) {
+      print("Erro ao carregar dados do usuário: $e");
+      if (mounted) {
+        setState(() {
+          userName = 'Erro ao carregar';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false; 
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF0F0F0),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0F0F0),
       body: CustomScrollView(
         slivers: [
-          // Nosso cabeçalho customizado que resolve o corte da foto
           SliverPersistentHeader(
             floating: true,
             delegate: _ProfileHeaderDelegate(
@@ -36,8 +90,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               rankEquipe: rankEquipe,
             ),
           ),
-
-          // O conteúdo que fica abaixo do cabeçalho
           SliverToBoxAdapter(
             child: Container(
               color: const Color(0xFFF0F0F0),
@@ -45,32 +97,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 30),
-                  // Abas de navegação
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedTab = 'Status';
-                          });
-                        },
+                        onTap: () => setState(() => _selectedTab = 'Status'),
                         child: _buildTabButton('Status', _selectedTab == 'Status'),
                       ),
                       const SizedBox(width: 20),
                       GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedTab = 'Pontos';
-                          });
-                        },
+                        onTap: () => setState(() => _selectedTab = 'Pontos'),
                         child: _buildTabButton('Pontos', _selectedTab == 'Pontos'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   
-                  // Conteúdo condicional com a nova versão do Status
+                  if (_isAdmin)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20.0),
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.admin_panel_settings),
+                        label: const Text('Painel do Administrador'),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const AdminScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF123C8C),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          )
+                        ),
+                      ),
+                    ),
+
                   if (_selectedTab == 'Status')
                     _buildStatusContent(
                       ideiasEnviadas,
@@ -89,15 +154,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
-  // --- WIDGETS AUXILIARES ---
-
-  // MÉTODO ATUALIZADO PELO SEU COLABORADOR
-  Widget _buildStatusContent(
-    int ideiasEnviadas,
-    int ideiasAceitas,
-    int ideiasSugeridas,
-  ) {
+  
+  Widget _buildStatusContent(int ideiasEnviadas, int ideiasAceitas, int ideiasSugeridas) { 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -109,16 +167,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Você enviou 6 ideias esse mês!",
-                style: TextStyle(
+              Text(
+                "Você enviou $ideiasEnviadas ideias esse mês!",
+                style: const TextStyle(
                   fontFamily: 'Rubik',
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               DropdownButton<String>(
-                value: 'Mensal',
+                 value: 'Mensal',
                 underline: const SizedBox(),
                 icon: const Icon(Icons.keyboard_arrow_down),
                 items: const [
@@ -131,126 +189,123 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 20),
           SizedBox(
-            height: 120,
+           height: 120,
             width: 120,
             child: Stack(
               fit: StackFit.expand,
               children: [
                 CircularProgressIndicator(
-                  value: 12 / ideiasSugeridas,
-                  strokeWidth: 10,
+                  value: ideiasSugeridas > 0 ? (ideiasEnviadas / ideiasSugeridas) : 0,
+                   strokeWidth: 10,
                   color: const Color(0xFF123C8C),
                   backgroundColor: Colors.white,
                 ),
                 Center(
-                  child: RichText(
+                 child: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: "12/$ideiasSugeridas\n",
+                           text: "$ideiasEnviadas/$ideiasSugeridas\n",
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 22,
+                           fontSize: 22,
                             color: Colors.black,
                           ),
                         ),
-                        const TextSpan(
+                       const TextSpan(
                           text: "ideias sugeridas",
                           style: TextStyle(fontSize: 12, color: Colors.black),
                         ),
-                      ],
+                       ],
                     ),
                   ),
                 ),
               ],
             ),
-          ),
+           ),
           const SizedBox(height: 20),
           Row(
             children: [
-              // CARD 1: Ideias enviadas
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
+                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 20,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.grey[200], // Um cinza claro
+                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                         children: [
                           Text(
                             "$ideiasEnviadas",
                             style: const TextStyle(
-                              fontSize: 48,
+                               fontSize: 48,
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
-                            ),
+                             ),
                           ),
                           const Icon(Icons.edit, color: Colors.black, size: 28),
                         ],
-                      ),
+                       ),
                       const SizedBox(height: 4),
                       const Text(
                         "Ideias enviadas",
-                        style: TextStyle(fontSize: 16, color: Colors.black),
+                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              const SizedBox(width: 16), // Espaçamento entre os cards
-              // CARD 2: Ideias aceitas
+               ),
+              const SizedBox(width: 16),
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                   horizontal: 16,
                     vertical: 20,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0D47A1), // Azul escuro
+                    color: const Color(0xFF0D47A1), 
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                           Text(
                             "$ideiasAceitas",
                             style: const TextStyle(
-                              fontSize: 48,
+                               fontSize: 48,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                            ),
+                         ),
                           ),
                           const Icon(
-                            Icons.military_tech_outlined, // Ícone de medalha
-                            color: Colors.white,
+                            Icons.military_tech_outlined,
+                             color: Colors.white,
                             size: 28,
                           ),
                         ],
-                      ),
+                       ),
                       const SizedBox(height: 4),
                       const Text(
                         "Ideias aceitas",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                         style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ],
                   ),
                 ),
-              ),
+               ),
             ],
           ),
         ],
@@ -338,10 +393,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Text(
                   "PTS",
                   style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold
-                  ),
+                      fontSize: 10,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -377,7 +431,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// CLASSE DO DELEGATE DO CABEÇALHO (VERSÃO ESTÁVEL)
 class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String userName;
   final int pontos;
@@ -391,16 +444,54 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.rankEquipe,
   });
 
+  // --- NOVA FUNÇÃO PARA O LOGOUT ---
+  Future<void> _showLogoutDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirmar Saída'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Você tem certeza que deseja sair?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Sair', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                
+                if (Navigator.of(dialogContext).canPop()) {
+                   Navigator.of(dialogContext).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (Route<dynamic> route) => false,
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Stack(
       fit: StackFit.expand,
       clipBehavior: Clip.none,
       children: [
-        // Fundo azul
         Container(color: const Color(0xFF041C40)),
-        
-        // Container branco com as informações
         Positioned(
           top: 120.0,
           left: 0,
@@ -415,7 +506,7 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
             child: Column(
               children: [
-                const SizedBox(height: 60), // Espaço para o avatar
+                const SizedBox(height: 60),
                 Text(
                   userName,
                   style: const TextStyle(
@@ -425,7 +516,6 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Card azul de pontos/rank
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -445,10 +535,8 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
         ),
-
-        // Avatar
         const Positioned(
-          top: 60.0, // Posição fixa: 120 (topo do container branco) - 60 (raio do avatar)
+          top: 60.0,
           left: 0,
           right: 0,
           child: CircleAvatar(
@@ -460,14 +548,21 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
         ),
-
-        // Botões de Voltar e Configurações (sempre visíveis)
-         Positioned(
+        
+        /////////////colocar cóigo do note pad :::::::::::
+        ///////////////
+        ////////////
+        /////////////////
+        /////////////
+       
           top: MediaQuery.of(context).padding.top,
           right: 0,
           child: IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () {},
+            // --- ONPRESSED ATUALIZADO ---
+            onPressed: () {
+              _showLogoutDialog(context);
+            },
           ),
         ),
       ],
@@ -493,15 +588,10 @@ class _ProfileHeaderDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
-  // Altura máxima e mínima são iguais para um cabeçalho estático
   @override
   double get maxExtent => 340;
-
   @override
   double get minExtent => 340;
-
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return true;
-  }
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
 }

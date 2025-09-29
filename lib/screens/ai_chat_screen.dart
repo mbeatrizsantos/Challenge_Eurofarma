@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Para a função de copiar
+import 'package:flutter/services.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
-// Modelo para representar uma mensagem no chat
+//======================================================================
+// MODELO (Sem alterações)
+//======================================================================
 class ChatMessage {
   final String text;
   final bool isUser;
+
   ChatMessage(this.text, {this.isUser = false});
 
-  // Converte a mensagem para o formato que a Cloud Function espera
   Map<String, dynamic> toJson() {
     return {
       'role': isUser ? 'user' : 'model',
@@ -17,8 +19,44 @@ class ChatMessage {
   }
 }
 
+//======================================================================
+// SERVIÇO DE API (Lógica de negócios extraída)
+//======================================================================
+class AiChatService {
+  final _functions = FirebaseFunctions.instanceFor(region: "us-central1");
+
+  /// Chama a Cloud Function para obter uma sugestão da IA.
+  /// Retorna a sugestão em caso de sucesso ou lança uma exceção em caso de erro.
+  Future<String> getSuggestion({
+    required String text,
+    required List<ChatMessage> history,
+  }) async {
+    try {
+      final callable = _functions.httpsCallable('developIdeaWithAI');
+      final result = await callable.call<Map<String, dynamic>>({
+        'text': text,
+        'history': history.map((m) => m.toJson()).toList(),
+      });
+
+      final suggestion = result.data['suggestion'] as String?;
+      if (suggestion == null || suggestion.isEmpty) {
+        throw Exception("A IA não retornou uma sugestão válida.");
+      }
+      return suggestion;
+    } on FirebaseFunctionsException catch (e) {
+      // Re-lança a exceção com uma mensagem mais clara para a UI tratar
+      throw Exception("Erro na comunicação com a IA: ${e.message}");
+    } catch (e) {
+      // Captura outras exceções inesperadas
+      throw Exception("Ocorreu um erro inesperado: ${e.toString()}");
+    }
+  }
+}
+
+//======================================================================
+// TELA PRINCIPAL (Widget)
+//======================================================================
 class AiChatScreen extends StatefulWidget {
-  // A tela recebe um histórico inicial opcional
   final List<ChatMessage>? initialHistory;
 
   const AiChatScreen({super.key, this.initialHistory});
@@ -28,7 +66,9 @@ class AiChatScreen extends StatefulWidget {
 }
 
 class _AiChatScreenState extends State<AiChatScreen> {
-  late final List<ChatMessage> _messages;
+  // Dependências e Estado
+  final _chatService = AiChatService();
+  final _messages = <ChatMessage>[];
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isLoading = false;
@@ -37,78 +77,90 @@ class _AiChatScreenState extends State<AiChatScreen> {
   @override
   void initState() {
     super.initState();
-    _messages = List.from(widget.initialHistory ?? []);
-
-    // Se a conversa for nova, adiciona uma mensagem de boas-vindas
-    if (_messages.isEmpty) {
-      _messages.add(ChatMessage("Olá! Sou seu assistente de ideias. Qual conceito você gostaria de explorar hoje?"));
-    } 
-    // Se a tela recebeu uma ideia inicial do usuário, busca a primeira resposta da IA
-    else if (_messages.length == 1 && _messages.first.isUser) {
-      _getFirstAiResponse();
-    }
-    
-    _updateLastResponse();
+    _initializeChat();
   }
 
-  // Função para a primeira chamada automática da IA
-  Future<void> _getFirstAiResponse() async {
-    setState(() { _isLoading = true; });
-    await _callApi(_messages.first.text);
+  @override
+  void dispose() {
+    _textController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
-  // Função para enviar uma mensagem do usuário
-  Future<void> _sendMessage() async {
-    if (_textController.text.trim().isEmpty) return;
-    final userMessage = _textController.text;
-    
-    setState(() {
-      _messages.add(ChatMessage(userMessage, isUser: true));
-      _isLoading = true;
-    });
-    _textController.clear();
-    
-    await _callApi(userMessage);
-  }
-  
-  // Lógica de chamada da API extraída para uma função separada
-  Future<void> _callApi(String textToSend) async {
-    try {
-      final callable = FirebaseFunctions.instanceFor(region: "us-central1")
-          .httpsCallable('developIdeaWithAI');
-      
-      final result = await callable.call<Map<String, dynamic>>({
-        'text': textToSend,
-        'history': _messages.map((m) => m.toJson()).toList(),
-      });
-
-      final suggestion = result.data['suggestion'];
-      if (suggestion != null) {
-        setState(() {
-          _messages.add(ChatMessage(suggestion));
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _messages.add(ChatMessage("Desculpe, ocorreu um erro. Tente novamente."));
-      });
-    } finally {
-      if(mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+  /// Configura o estado inicial do chat.
+  void _initializeChat() {
+    final initialHistory = widget.initialHistory;
+    if (initialHistory == null || initialHistory.isEmpty) {
+      // Se a conversa for nova, adiciona uma mensagem de boas-vindas.
+      _messages.add(ChatMessage(
+          "Olá! Sou seu assistente de ideias. Qual conceito você gostaria de explorar hoje?"));
+    } else {
+      // Se a tela recebeu uma ideia inicial, já a busca na IA.
+      _messages.addAll(initialHistory);
+      if (_messages.length == 1 && _messages.first.isUser) {
+        _fetchAiResponse(initialText: _messages.first.text);
+      } else {
         _updateLastResponse();
-        _scrollToBottom();
       }
     }
   }
 
-  void _updateLastResponse() {
-    if (_messages.isNotEmpty && !_messages.last.isUser) {
-      _lastAiResponse = _messages.last.text;
+  /// Adiciona uma nova mensagem à lista e rola para o final.
+  void _addMessage(ChatMessage message) {
+    setState(() {
+      _messages.add(message);
+    });
+    _scrollToBottom();
+  }
+
+  /// Lida com o envio de uma nova mensagem pelo usuário.
+  Future<void> _handleSendPressed() async {
+    final text = _textController.text.trim();
+    if (text.isEmpty) return;
+
+    _textController.clear();
+    _addMessage(ChatMessage(text, isUser: true));
+    await _fetchAiResponse(initialText: text);
+  }
+
+  /// Busca a resposta da IA e atualiza o estado da tela.
+  Future<void> _fetchAiResponse({required String initialText}) async {
+    setState(() => _isLoading = true);
+
+    try {
+      final suggestion = await _chatService.getSuggestion(
+        text: initialText,
+        history: _messages,
+      );
+      _addMessage(ChatMessage(suggestion));
+    } catch (e) {
+      _addMessage(ChatMessage("Desculpe, ocorreu um erro: ${e.toString()}"));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _updateLastResponse();
+      }
     }
   }
 
+  /// Atualiza a variável que guarda a última resposta da IA.
+  void _updateLastResponse() {
+    final lastMessage = _messages.lastWhere((m) => !m.isUser, orElse: () => ChatMessage(""));
+    _lastAiResponse = lastMessage.text;
+  }
+
+  /// Copia todo o histórico da conversa para a área de transferência.
+  void _copyConversationToClipboard() {
+    final conversationText = _messages
+        .map((m) => "${m.isUser ? 'Você' : 'IA'}: ${m.text}")
+        .join('\n\n');
+    Clipboard.setData(ClipboardData(text: conversationText));
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Conversa copiada!')));
+  }
+
+  /// Rola a lista de mensagens para o item mais recente.
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -130,11 +182,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
           IconButton(
             icon: const Icon(Icons.copy_all_outlined),
             tooltip: "Copiar conversa",
-            onPressed: () {
-              final conversationText = _messages.map((m) => "${m.isUser ? 'Você' : 'IA'}: ${m.text}").join('\n\n');
-              Clipboard.setData(ClipboardData(text: conversationText));
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Conversa copiada!')));
-            },
+            onPressed: _copyConversationToClipboard,
           ),
         ],
       ),
@@ -146,77 +194,141 @@ class _AiChatScreenState extends State<AiChatScreen> {
               padding: const EdgeInsets.all(16.0),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                final message = _messages[index];
-                return Align(
-                  alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: message.isUser ? Colors.blueAccent : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade300)
-                    ),
-                    child: SelectableText(
-                      message.text,
-                      style: TextStyle(color: message.isUser ? Colors.white : Colors.black87),
-                    ),
-                  ),
-                );
+                // Widget de bolha de mensagem extraído
+                return _MessageBubble(message: _messages[index]);
               },
             ),
           ),
-          if (_isLoading) const Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()),
-          
-          Container(
-            padding: const EdgeInsets.all(8.0).copyWith(bottom: MediaQuery.of(context).padding.bottom + 8.0),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              border: Border(top: BorderSide(color: Colors.grey.shade300))
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        decoration: InputDecoration(
-                          hintText: "Faça uma pergunta...",
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(25)),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                        onSubmitted: _isLoading ? null : (_) => _sendMessage(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton.filled(
-                      icon: const Icon(Icons.send),
-                      onPressed: _isLoading ? null : _sendMessage,
-                      style: IconButton.styleFrom(backgroundColor: Colors.blueAccent),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    child: const Text("Usar esta versão da ideia"),
-                    onPressed: () {
-                      Navigator.of(context).pop(_lastAiResponse);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          // Widget da barra de entrada extraído
+          _ChatInputBar(
+            controller: _textController,
+            isLoading: _isLoading,
+            onSend: _handleSendPressed,
+            onUseIdea: () {
+              // Retorna a última resposta da IA para a tela anterior
+              if (_lastAiResponse.isNotEmpty) {
+                Navigator.of(context).pop(_lastAiResponse);
+              }
+            },
           ),
         ],
+      ),
+    );
+  }
+}
+
+//======================================================================
+// WIDGETS DE UI EXTRAÍDOS
+//======================================================================
+
+/// Representa a bolha de uma única mensagem no chat.
+class _MessageBubble extends StatelessWidget {
+  final ChatMessage message;
+  const _MessageBubble({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isUser = message.isUser;
+
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        margin: const EdgeInsets.only(bottom: 8),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
+        decoration: BoxDecoration(
+          color: isUser ? theme.colorScheme.primary : theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: isUser ? null : Border.all(color: Colors.grey.shade300),
+        ),
+        child: SelectableText(
+          message.text,
+          style: TextStyle(
+            color: isUser ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Representa a barra inferior com campo de texto e botões.
+class _ChatInputBar extends StatelessWidget {
+  final TextEditingController controller;
+  final bool isLoading;
+  final VoidCallback onSend;
+  final VoidCallback onUseIdea;
+
+  const _ChatInputBar({
+    required this.controller,
+    required this.isLoading,
+    required this.onSend,
+    required this.onUseIdea,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.grey.shade100,
+      elevation: 4.0,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: controller,
+                      enabled: !isLoading,
+                      decoration: InputDecoration(
+                        hintText: "Faça uma pergunta...",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      onSubmitted: isLoading ? null : (_) => onSend(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    icon: const Icon(Icons.send),
+                    onPressed: isLoading ? null : onSend,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onUseIdea,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Usar esta versão da ideia"),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// NOVA CLASSE PARA CRIAR O ARCO
+// NOVA CLASSE PARA CRIAR O AaRCO
 class RankingArcClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -107,22 +107,22 @@ class PodiumWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         PodiumPlace(
-          name: 'Bil-al',
+          name: 'Carmem Dias',
           points: '2879 Pts',
-          imageUrl: 'assets/person1.png',
+          imageUrl: 'assets/foto de foco raso da mulher na jaqueta cinza.png',
           radius: 50,
         ),
         PodiumPlace(
-          name: 'Davy Jones',
+          name: 'Joao Santana',
           points: '5678 Pts',
-          imageUrl: 'assets/person2.png',
+          imageUrl: 'assets/um homem de óculos e camisa branca.png',
           radius: 65,
           hasCrown: true,
         ),
         PodiumPlace(
-          name: 'Michael J',
+          name: 'Beatriz Silva',
           points: '3244 Pts',
-          imageUrl: 'assets/person3.png',
+          imageUrl: 'assets/Uma jovem com cabelo comprido vestindo uma camiseta branca.png',
           radius: 50,
         ),
       ],
@@ -183,11 +183,11 @@ class RankingList extends StatelessWidget {
   const RankingList({super.key});
 
   final List<Map<String, dynamic>> rankings = const [
-    {'position': '4', 'name': 'Smith Carol', 'points': '2000 Pts', 'imageUrl': 'assets/person4.png'},
-    {'position': '5', 'name': 'Harry', 'points': '1890 Pts', 'imageUrl': 'assets/person5.png'},
-    {'position': '6', 'name': 'Jon', 'points': '1600 Pts', 'imageUrl': 'assets/person6.png'},
-    {'position': '7', 'name': 'Ken', 'points': '1456 Pts', 'imageUrl': 'assets/person7.png'},
-    {'position': '8', 'name': 'Petter', 'points': '1302 Pts', 'imageUrl': 'assets/person8.png'},
+    {'position': '4', 'name': 'Carol Dias', 'points': '2000 Pts', 'imageUrl': 'assets/Um homem de camisa branca está posando para uma foto.png'},
+    {'position': '5', 'name': 'Carlos Peira', 'points': '1890 Pts', 'imageUrl': 'assets/um homem de cabelos cacheados sorrindo para a câmera.png'},
+    {'position': '6', 'name': 'Cristiana Rodrigues', 'points': '1600 Pts', 'imageUrl': 'assets/Uma jovem empresária de pé ao ar livre contra o fundo verde, olhando para a câmera.png'},
+    {'position': '7', 'name': 'Heloisa Vital', 'points': '1456 Pts', 'imageUrl': 'assets/uma mulher em um vestido sorrindo contra uma parede azul.png'},
+    {'position': '8', 'name': 'Roberto Carlos', 'points': '1302 Pts', 'imageUrl': 'assets/camisa cinza e preta do homem.png'},
   ];
 
   @override
