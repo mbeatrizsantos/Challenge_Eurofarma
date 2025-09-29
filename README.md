@@ -35,8 +35,6 @@ lib
 
 ├── apis/         # Configuração de clientes de API (ex: Firebase)
 
-├── blocs/        # Lógica de negócio (BLoCs e Cubits)
-
 ├── models/       # Modelos de dados (ex: User, Idea)
 
 ├── repositories/ # Camada de abstração de dados
